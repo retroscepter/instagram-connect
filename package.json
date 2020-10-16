@@ -1,0 +1,38 @@
+{
+  "name": "insta-realtime",
+  "version": "0.0.1",
+  "description": "A realtime private API client for Instagram.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "build": "npx tsc -p tsconfig.json",
+    "build:watch": "npx tsc -w -p tsconfig.json"
+  },
+  "author": "Braden Lamb",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@types/chance": "^1.1.0",
+    "@types/crypto-js": "^4.0.1",
+    "@types/events": "^3.0.0",
+    "@types/luxon": "^1.25.0",
+    "@types/qs": "^6.9.5",
+    "@types/tough-cookie": "^4.0.0",
+    "axios": "^0.20.0",
+    "axios-cookiejar-support": "^1.0.0",
+    "chance": "^1.1.7",
+    "crypto-js": "^4.0.0",
+    "events": "^3.2.0",
+    "lru-cache": "^6.0.0",
+    "mqtt": "^4.2.1",
+    "qs": "^6.9.4",
+    "tough-cookie": "^4.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.4.1",
+    "@typescript-eslint/parser": "^4.4.1",
+    "eslint": "^7.11.0",
+    "typescript": "^4.0.3"
+  }
+}
