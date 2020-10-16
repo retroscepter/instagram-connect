@@ -50,10 +50,18 @@ export class Request {
             form
         }
 
-        const response = await this.got(requestOptions)
+        try {
+            const response = await this.got(requestOptions)
 
-        // @ts-expect-error Got doesn't type their responses.
-        return response
+            // @ts-expect-error Got doesn't type their responses.
+            return response
+        } catch (error) {
+            /* Throw response body */
+
+            if (!error.response) throw error
+            if (!error.response.body) throw error.response
+            throw error.response.body
+        }
     }
 
     /**
@@ -128,7 +136,11 @@ export class Request {
      */
     private get data (): FormData {
         return {
-            _csrfToken: this.client.state.csrfToken
+            _csrfToken: this.client.state.csrfToken,
+            _uid: this.client.state.userId,
+            _uuid: this.client.state.uuid,
+            device_id: this.client.state.deviceId,
+            android_device_id: this.client.state.deviceId
         }
     }
 

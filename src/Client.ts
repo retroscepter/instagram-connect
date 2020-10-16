@@ -36,6 +36,9 @@ export class Client extends EventEmitter {
      * @returns {Promise<void>} Resolved after logging in and connecting
      */
     public async login (username?: string, password?: string): Promise<void> {
+        if (typeof username !== 'string') throw new TypeError('username is required and must be a string')
+        if (typeof password !== 'string') throw new TypeError('password is required and must be a string')
 
+        await this.account.login(username, password)
     }
 }

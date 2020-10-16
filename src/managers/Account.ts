@@ -17,7 +17,11 @@ export class AccountManager extends Manager {
      * 
      * @returns {Promise<void>}
      */
-    public async login (username: string, password: string): Promise<void> {
+    public async login (username: string, password: string): Promise<unknown> {
+        if (!this.client.state.deviceId) {
+            this.client.state.generateDevice(username)
+        }
+
         if (
             !this.client.state.passwordEncryptionKeyId ||
             !this.client.state.passwordEncryptionPublicKey
@@ -49,10 +53,14 @@ export class AccountManager extends Manager {
             data
         })
 
-        // @ts-ignore
         return response.body
     }
 
+    /**
+     * Create Jazoest.
+     *
+     * @param input Input
+     */
     private createJazoest (input: string): string {
         const buffer = Buffer.from(input, 'ascii')
         let sum = 0
