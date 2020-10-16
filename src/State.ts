@@ -17,7 +17,7 @@ export class State {
     public client: Client
 
     public cookieStore = new MemoryCookieStore()
-    public cookieJar = new CookieJar(this.cookieStore, { rejectPublicSuffixes: false })
+    public cookieJar = new CookieJar(this.cookieStore, { allowSpecialUseDomain: true })
 
     public authorization?: string
     public deviceId?: string
@@ -65,6 +65,39 @@ export class State {
      */
     public get appUserAgent (): string {
         return `Instagram ${Constants.APP_VERSION} Android (${this.deviceName}; ${Constants.LANGUAGE}; ${Constants.APP_VERSION_CODE})`
+    }
+
+    /**
+     * CSRF token.
+     * 
+     * @public
+     * 
+     * @returns {string | undefined}
+     */
+    public get csrfToken (): string | undefined {
+        return this.getCookieValue('csrftoken')
+    }
+
+    /**
+     * User ID.
+     * 
+     * @public
+     * 
+     * @returns {string | undefined}
+     */
+    public get userId (): string | undefined {
+        return this.getCookieValue('ds_user_id')
+    }
+
+    /**
+     * Username.
+     * 
+     * @public
+     * 
+     * @returns {string | undefined}
+     */
+    public get username (): string | undefined {
+        return this.getCookieValue('ds_user')
     }
 
     /**

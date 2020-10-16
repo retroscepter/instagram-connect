@@ -1,7 +1,5 @@
 
-import qs from 'qs'
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
-import axiosCookieJarSupport from 'axios-cookiejar-support'
+import got, { Got, Options } from 'got'
 import hmacSHA256 from 'crypto-js/hmac-sha256'
 import encHex from 'crypto-js/enc-hex'
 
@@ -9,6 +7,8 @@ import { Client } from './Client'
 
 import { RequestSendOptions } from './types/RequestSendOptions'
 import { SignedFormBody } from './types/SignedFormBody'
+import { FormData } from './types/FormData'
+import { Headers } from './types/Headers'
 
 import * as Constants from './constants'
 
@@ -18,7 +18,7 @@ import * as Constants from './constants'
 export class Request {
     client: Client
 
-    axios: AxiosInstance
+    got: Got
 
     /**
      * @param client Client managing the instance
@@ -26,12 +26,10 @@ export class Request {
     constructor (client: Client) {
         this.client = client
 
-        this.axios = axios.create({
-            baseURL: `${Constants.API_URL}`,
-            // jar: this.client.state.cookieJar
+        this.got = got.extend({
+            prefixUrl: Constants.API_URL,
+            cookieJar: this.client.state.cookieJar
         })
-
-        // axiosCookieJarSupport(this.axios)
     }
 
     /**
@@ -39,21 +37,23 @@ export class Request {
      *
      * @param options Request options
      */
-    public async send (options: RequestSendOptions) {
+    public async send (options: RequestSendOptions): Promise<unknown> {
         const headers = { ...this.headers, ...(options.headers || {}) }
-        const data = options.data ? qs.stringify(this.signData(options.data)) : undefined
+        const data = { ...this.data, ...(options.data || {}) }
+        const form = this.signData(data)
 
-        const requestOptions: AxiosRequestConfig = {
+        const requestOptions: Options = {
             url: options.url,
             method: options.method || 'GET',
+            responseType: 'json',
             headers,
-            data
+            form
         }
 
-        console.log(requestOptions)
+        const response = await this.got(requestOptions)
 
-        const response = await this.axios(requestOptions)
-        return response.data
+        // @ts-expect-error Got doesn't type their responses.
+        return response.body
     }
 
     /**
@@ -74,8 +74,10 @@ export class Request {
      * @public
      *
      * @param data Form data to sign
+     * 
+     * @returns {SignedFormBody}
      */
-    public signData (data: Record<string, string | undefined>): SignedFormBody {
+    public signData (data: FormData): SignedFormBody {
         const string = JSON.stringify(data)
         const signature = this.sign(string)
 
@@ -86,13 +88,26 @@ export class Request {
     }
 
     /**
+     * Default form data for every request.
+     * 
+     * @private
+     * 
+     * @returns {FormData}
+     */
+    private get data (): FormData {
+        return {
+            _csrfToken: this.client.state.csrfToken
+        }
+    }
+
+    /**
      * Default headers for every request.
      * 
      * @private
      * 
-     * @returns {Record<string, string>}
+     * @returns {Headers}
      */
-    private get headers (): Record<string, string | null | undefined> {
+    private get headers (): Headers {
         return {
             'X-Ads-Opt-Out': '1',
             'X-CM-Bandwidth-KBPS': '-1.000',
@@ -117,11 +132,11 @@ export class Request {
             'X-IG-Device-ID': this.client.state.uuid,
             'X-IG-Android-ID': this.client.state.deviceId,
             'X-DEVICE-ID': this.client.state.uuid,
-            'X-MID': this.client.state.getCookieValue('mid') || null,
+            'X-MID': this.client.state.getCookieValue('mid'),
             'Accept-Language': Constants.LANGUAGE.replace('_', '-'),
             'Accept-Encoding': 'gzip',
             'User-Agent': this.client.state.appUserAgent,
-            Authorization: this.client.state.authorization || null,
+            Authorization: this.client.state.authorization,
             Host: Constants.API_HOST,
             Connection: 'close',
         }
