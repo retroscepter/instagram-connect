@@ -6,15 +6,6 @@ const client = new Client()
 
 client.state.generateDevice()
 
-client.request.send({
-    url: 'api/v1/qe/sync/',
-    method: 'POST',
-    data: {
-        id: client.state.uuid,
-        experiments: EXPERIMENTS
-    }
-})
-  .then(data => {
-    console.log(data)
-    console.log(client.state.csrfToken)
-  })
+client.account.login(process.env.USERNAME, process.env.PASSWORD)
+  .then(console.log)
+  .catch(error => console.log(error.response.body))

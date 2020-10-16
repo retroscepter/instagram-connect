@@ -9,20 +9,69 @@ import { Manager } from './Manager'
 export class AccountManager extends Manager {
     /**
      * Send login request.
+     * 
+     * @public
      *
      * @param username Instagram account username
      * @param password Instagram account password
+     * 
+     * @returns {Promise<void>}
      */
     public async login (username: string, password: string): Promise<void> {
+        if (
+            !this.client.state.passwordEncryptionKeyId ||
+            !this.client.state.passwordEncryptionPublicKey
+        ) {
+            await this.client.qe.syncLoginExperiments()
+        }
 
+        const phoneId = this.client.state.phoneId
+        const jazoest = phoneId ? this.createJazoest(phoneId) : undefined
+        // const { time, encrypted } = this.encryptPassword(password)
+
+        const data = {
+            username,
+            password,
+            // enc_password: `#PWD_INSTAGRAM:4:${time}:${encrypted}`,
+            guid: this.client.state.uuid,
+            phone_id: this.client.state.phoneId,
+            device_id: this.client.state.deviceId,
+            adid: '',
+            google_tokens: '[]',
+            login_attempt_count: 0,
+            country_codes: JSON.stringify([{ country_code: '1', source: 'default' }]),
+            jazoest
+        }
+
+        const response = await this.client.request.send({
+            url: 'api/v1/accounts/login/',
+            method: 'POST',
+            data
+        })
+
+        // @ts-ignore
+        return response.body
+    }
+
+    private createJazoest (input: string): string {
+        const buffer = Buffer.from(input, 'ascii')
+        let sum = 0
+        for (let i = 0; i < buffer.byteLength; i++) {
+            sum += buffer.readUInt8(i)
+        }
+        return `2${sum}`
     }
 
     /**
      * Encrypt password.
+     * 
+     * @private
      *
      * @param password Password
+     * 
+     * @returns {{ time: string, encrypted: string }}
      */
-    public encryptPassword (password: string): { time: string, encrypted: string } {
+    private encryptPassword (password: string): { time: string, encrypted: string } {
         const randomKey = crypto.randomBytes(32)
         const iv = crypto.randomBytes(16)
     

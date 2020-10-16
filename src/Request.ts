@@ -37,10 +37,10 @@ export class Request {
      *
      * @param options Request options
      */
-    public async send (options: RequestOptions): Promise<unknown> {
+    public async send (options: RequestOptions): Promise<Response> {
         const headers = { ...this.headers, ...(options.headers || {}) }
         const data = { ...this.data, ...(options.data || {}) }
-        const form = this.signData(data)
+        const form = options.method === 'POST' ? this.signData(data) : undefined
 
         const requestOptions: Options = {
             url: options.url,
@@ -53,7 +53,7 @@ export class Request {
         const response = await this.got(requestOptions)
 
         // @ts-expect-error Got doesn't type their responses.
-        return response.body
+        return response
     }
 
     /**

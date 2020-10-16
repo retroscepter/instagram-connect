@@ -5,6 +5,9 @@ import { State } from './State'
 import { Request } from './Request'
 import { Realtime } from './Realtime'
 
+import { QEManager } from './managers/QE'
+import { AccountManager } from './managers/Account'
+
 /**
  * Main class for interacting with the Instagram private API.
  *
@@ -14,6 +17,9 @@ export class Client extends EventEmitter {
     public state = new State(this)
     public request = new Request(this)
     public realtime = new Realtime(this)
+
+    public qe = new QEManager(this)
+    public account = new AccountManager(this)
 
     constructor () {
         super()
