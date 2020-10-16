@@ -19,13 +19,17 @@ export class State {
     public cookieStore = new MemoryCookieStore()
     public cookieJar = new CookieJar(this.cookieStore, { allowSpecialUseDomain: true })
 
-    public authorization?: string
     public deviceId?: string
     public deviceName?: string
     public appBuild?: string
     public phoneId?: string
     public uuid?: string
     public adid?: string
+
+    public igWWWClaim?: string
+    public authorization?: string
+    public passwordEncryptionKeyId?: string
+    public passwordEncryptionPublicKey?: string
 
     /**
      * @param client Client managing the instance
@@ -140,6 +144,8 @@ export class State {
      * @public
      *
      * @param key Cookie key
+     * 
+     * @returns {Cookie | undefined}
      */
     public getCookie (key: string): Cookie | undefined {
         return this.getCookies().find(cookie => cookie.key === key)
@@ -151,6 +157,8 @@ export class State {
      * @public
      *
      * @param key Cookie key
+     * 
+     * @returns {string | undefined}
      */
     public getCookieValue (key: string): string | undefined {
         return this.getCookie(key)?.value
@@ -162,6 +170,8 @@ export class State {
      * @public
      * 
      * @param seed Seed for random generation
+     * 
+     * @returns {void}
      */
     public generateDevice (seed: string): void {
         const chance = new Chance(seed)
@@ -180,6 +190,8 @@ export class State {
      * 
      * @param seed Seed for randomization
      * @param lifetime Lifetime of the guid
+     * 
+     * @returns {string}
      */
     public generateGuid (seed: string, lifetime: number): string {
         return new Chance(`${seed}${this.deviceId}${Math.round(Date.now() / lifetime)}`).guid()

@@ -1,11 +1,10 @@
 
-import got, { Got, Options } from 'got'
-import hmacSHA256 from 'crypto-js/hmac-sha256'
-import encHex from 'crypto-js/enc-hex'
+import got, { GotRequestFunction, Options, Response } from 'got'
+import { createHmac } from 'crypto'
 
 import { Client } from './Client'
 
-import { RequestSendOptions } from './types/RequestSendOptions'
+import { RequestOptions } from './types/RequestOptions'
 import { SignedFormBody } from './types/SignedFormBody'
 import { FormData } from './types/FormData'
 import { Headers } from './types/Headers'
@@ -18,7 +17,7 @@ import * as Constants from './constants'
 export class Request {
     client: Client
 
-    got: Got
+    got: GotRequestFunction
 
     /**
      * @param client Client managing the instance
@@ -28,7 +27,8 @@ export class Request {
 
         this.got = got.extend({
             prefixUrl: Constants.API_URL,
-            cookieJar: this.client.state.cookieJar
+            cookieJar: this.client.state.cookieJar,
+            hooks: { afterResponse: [this.afterResponse.bind(this)] }
         })
     }
 
@@ -37,7 +37,7 @@ export class Request {
      *
      * @param options Request options
      */
-    public async send (options: RequestSendOptions): Promise<unknown> {
+    public async send (options: RequestOptions): Promise<unknown> {
         const headers = { ...this.headers, ...(options.headers || {}) }
         const data = { ...this.data, ...(options.data || {}) }
         const form = this.signData(data)
@@ -64,8 +64,7 @@ export class Request {
      * @param data Data to sign
      */
     public sign (data: string): string {
-        const signature = hmacSHA256(data, Constants.SIGNATURE_KEY)
-        return encHex.stringify(signature)
+        return createHmac('sha256', Constants.SIGNATURE_KEY).update(data).digest('hex')
     }
 
     /**
@@ -85,6 +84,39 @@ export class Request {
             ig_sig_key_version: Constants.SIGNATURE_VERSION,
             signed_body: `${signature}.${string}`
         }
+    }
+
+    /**
+     * After response hook for Got.
+     *
+     * @param response Got response
+     * 
+     * @returns {Response}
+     */
+    private afterResponse (response: Response): Response {
+        this.updateStateFromResponse(response)
+        return response
+    }
+
+    /**
+     * Update state from response data
+     *
+     * @param response Got response
+     * 
+     * @returns {void}
+     */
+    private updateStateFromResponse (response: Response): void {
+        const {
+            'x-ig-set-www-claim': igWWWClaim,
+            'ig-set-authorization': authorization,
+            'ig-set-password-encryption-key-id': passwordEncryptionKeyId,
+            'ig-set-password-encryption-pub-key': passwordEncryptionPublicKey
+        } = response.headers
+
+        if (typeof igWWWClaim === 'string') this.client.state.igWWWClaim = igWWWClaim
+        if (typeof authorization === 'string') this.client.state.authorization = authorization
+        if (typeof passwordEncryptionKeyId === 'string') this.client.state.passwordEncryptionKeyId = passwordEncryptionKeyId
+        if (typeof passwordEncryptionPublicKey === 'string') this.client.state.passwordEncryptionPublicKey = passwordEncryptionPublicKey
     }
 
     /**
