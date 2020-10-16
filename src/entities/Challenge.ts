@@ -3,7 +3,7 @@ import { Client } from '../Client'
 
 import { Entity } from './Entity'
 
-import { ChallengeStateResponse } from '../responses/Challenge'
+import { ChallengeStateData } from '../responses/Challenge'
 
 /**
  * Represents a challenge.
@@ -12,7 +12,7 @@ import { ChallengeStateResponse } from '../responses/Challenge'
  */
 export class Challenge extends Entity {
     url: string
-    state?: ChallengeStateResponse
+    state?: ChallengeStateData
 
     /**
      * @param client Client managing this entity
@@ -28,10 +28,10 @@ export class Challenge extends Entity {
      *
      * @public
      * 
-     * @returns {Promise<ChallengeStateResponse>}
+     * @returns {Promise<ChallengeStateData>}
      */
-    public async init (): Promise<ChallengeStateResponse> {
-        const response = await this.client.request.send<ChallengeStateResponse>({
+    public async init (): Promise<ChallengeStateData> {
+        const response = await this.client.request.send<ChallengeStateData>({
             url: this.url
         })
 
@@ -46,14 +46,14 @@ export class Challenge extends Entity {
      *
      * @param method Verification method
      * 
-     * @returns {Promise<ChallengeStateResponse>}
+     * @returns {Promise<ChallengeStateData>}
      */
-    public async selectMethod (method?: string): Promise<ChallengeStateResponse> {
+    public async selectMethod (method?: string): Promise<ChallengeStateData> {
         const data = {
             choice: method || this.state?.step_data.choice
         }
 
-        const response = await this.client.request.send<ChallengeStateResponse>({
+        const response = await this.client.request.send<ChallengeStateData>({
             url: this.url,
             method: 'POST',
             data
@@ -70,14 +70,14 @@ export class Challenge extends Entity {
      *
      * @param code Security code
      * 
-     * @returns {Promise<ChallengeStateResponse>}
+     * @returns {Promise<ChallengeStateData>}
      */
-    public async solve (code: string | number): Promise<ChallengeStateResponse> {
+    public async solve (code: string | number): Promise<ChallengeStateData> {
         const data = {
             security_code: code
         }
 
-        const response = await this.client.request.send<ChallengeStateResponse>({
+        const response = await this.client.request.send<ChallengeStateData>({
             url: this.url,
             method: 'POST',
             data
@@ -92,10 +92,10 @@ export class Challenge extends Entity {
      * 
      * @public
      * 
-     * @returns {Promise<ChallengeStateResponse>}
+     * @returns {Promise<ChallengeStateData>}
      */
-    public async reset (): Promise<ChallengeStateResponse> {
-        const response = await this.client.request.send<ChallengeStateResponse>({
+    public async reset (): Promise<ChallengeStateData> {
+        const response = await this.client.request.send<ChallengeStateData>({
             url: this.url.replace('/challenge/', '/challenge/reset/'),
             method: 'POST'
         })
@@ -124,7 +124,7 @@ export class Challenge extends Entity {
      * 
      * @returns {void}
      */
-    private updateState (body: ChallengeStateResponse): void {
+    private updateState (body: ChallengeStateData): void {
         if (body.action === 'close') {
             this.close()
         } else {

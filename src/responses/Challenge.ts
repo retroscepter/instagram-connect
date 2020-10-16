@@ -1,7 +1,7 @@
 
 import { LoggedInUserData } from './Account'
 
-export interface ChallengeStateResponse {
+export interface ChallengeStateData {
     step_name: string
     step_data: ChallengeStepData
     logged_in_user?: LoggedInUserData

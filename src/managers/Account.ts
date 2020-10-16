@@ -1,7 +1,7 @@
 
 import { Manager } from './Manager'
 
-import { LoginResponse } from '../responses/Account'
+import { LoginData } from '../responses/Account'
 
 /**
  * Manages account authentication.
@@ -19,7 +19,7 @@ export class AccountManager extends Manager {
      * 
      * @returns {Promise<void>}
      */
-    public async login (username: string, password: string): Promise<LoginResponse | undefined> {
+    public async login (username: string, password: string): Promise<LoginData | undefined> {
         if (!this.client.state.deviceId) {
             this.client.state.generateDevice(username)
         }
@@ -47,7 +47,7 @@ export class AccountManager extends Manager {
             jazoest
         }
 
-        const response = await this.client.request.send<LoginResponse>({
+        const response = await this.client.request.send<LoginData>({
             url: 'api/v1/accounts/login/',
             method: 'POST',
             data

@@ -1,5 +1,5 @@
 
-export interface LoginResponse {
+export interface LoginData {
     logged_in_user: LoggedInUserData
     status: string
 }

@@ -1,4 +1,4 @@
 
-export interface ErrorResponse {
-    [key: string]: string | number | boolean | null | ErrorResponse
+export interface ErrorData {
+    [key: string]: string | number | boolean | null | ErrorData
 }
