@@ -1,10 +1,12 @@
 
-import crypto from 'crypto'
-
 import { Manager } from './Manager'
+
+import { LoginResponse } from '../responses/Account'
 
 /**
  * Manages account authentication.
+ * 
+ * @extends {Manager}
  */
 export class AccountManager extends Manager {
     /**
@@ -17,7 +19,7 @@ export class AccountManager extends Manager {
      * 
      * @returns {Promise<void>}
      */
-    public async login (username: string, password: string): Promise<unknown> {
+    public async login (username: string, password: string): Promise<LoginResponse | undefined> {
         if (!this.client.state.deviceId) {
             this.client.state.generateDevice(username)
         }
@@ -26,18 +28,15 @@ export class AccountManager extends Manager {
             !this.client.state.passwordEncryptionKeyId ||
             !this.client.state.passwordEncryptionPublicKey
         ) {
-            await this.client.qe.syncExperiments()
             await this.client.qe.syncLoginExperiments()
         }
 
         const phoneId = this.client.state.phoneId
         const jazoest = phoneId ? this.createJazoest(phoneId) : undefined
-        // const { time, encrypted } = this.encryptPassword(password)
 
         const data = {
             username,
             password,
-            // enc_password: `#PWD_INSTAGRAM:4:${time}:${encrypted}`,
             guid: this.client.state.uuid,
             phone_id: this.client.state.phoneId,
             device_id: this.client.state.deviceId,
@@ -48,7 +47,7 @@ export class AccountManager extends Manager {
             jazoest
         }
 
-        const response = await this.client.request.send({
+        const response = await this.client.request.send<LoginResponse>({
             url: 'api/v1/accounts/login/',
             method: 'POST',
             data
@@ -69,47 +68,5 @@ export class AccountManager extends Manager {
             sum += buffer.readUInt8(i)
         }
         return `2${sum}`
-    }
-
-    /**
-     * Encrypt password.
-     * 
-     * @private
-     *
-     * @param password Password
-     * 
-     * @returns {{ time: string, encrypted: string }}
-     */
-    private encryptPassword (password: string): { time: string, encrypted: string } {
-        const randomKey = crypto.randomBytes(32)
-        const iv = crypto.randomBytes(16)
-    
-        const rsaEncrypted = crypto.publicEncrypt({
-            // @ts-ignore
-            key: Buffer.from(this.client.state.passwordEncryptionPublicKey, 'base64').toString(),
-            padding: crypto.constants.RSA_PKCS1_PADDING
-        }, randomKey)
-
-        const cipher = crypto.createCipheriv('aes-256-gcm', randomKey, iv)
-        const time = Math.floor(Date.now() / 1000).toString()
-
-        cipher.setAAD(Buffer.from(time))
-
-        const aesEncrypted = Buffer.concat([cipher.update(password, 'utf8'), cipher.final()])
-        const sizeBuffer = Buffer.alloc(2, 0)
-        sizeBuffer.writeInt16LE(rsaEncrypted.byteLength, 0)
-        const authTag = cipher.getAuthTag()
-
-        return {
-            time,
-            encrypted: Buffer.concat([
-                Buffer.from([1, this.client.state.passwordEncryptionKeyId]),
-                iv,
-                sizeBuffer,
-                rsaEncrypted,
-                authTag,
-                aesEncrypted
-            ]).toString('base64')
-        }
     }
 }

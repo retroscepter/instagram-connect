@@ -4,12 +4,23 @@ import { createHmac } from 'crypto'
 
 import { Client } from './Client'
 
-import { RequestOptions } from './types/RequestOptions'
-import { SignedFormBody } from './types/SignedFormBody'
 import { FormData } from './types/FormData'
 import { Headers } from './types/Headers'
 
 import * as Constants from './constants'
+import { ErrorResponse } from './responses/Error'
+
+type RequestOptions = {
+    url: string
+    method?: 'GET' | 'POST'
+    headers?: Headers
+    data?: FormData
+}
+
+type SignedFormBody = {
+    ig_sig_key_version: string
+    signed_body: string
+}
 
 /**
  * Manages requests and authorization for requests.
@@ -37,7 +48,7 @@ export class Request {
      *
      * @param options Request options
      */
-    public async send (options: RequestOptions): Promise<Response> {
+    public async send<T = unknown> (options: RequestOptions): Promise<Response<T>> {
         const headers = { ...this.headers, ...(options.headers || {}) }
         const data = { ...this.data, ...(options.data || {}) }
         const form = options.method === 'POST' ? this.signData(data) : undefined
@@ -60,6 +71,14 @@ export class Request {
 
             if (!error.response) throw error
             if (!error.response.body) throw error.response
+
+            if (error.response.body.message === 'challenge_required') {
+                const url = error.response.body.challenge.api_path
+                const challenge = this.client.state.challenge || await this.client.challenge.start(url)
+                await new Promise(resolve => challenge.once('solved', resolve))
+                return this.send(options)
+            }
+
             throw error.response.body
         }
     }
@@ -103,6 +122,7 @@ export class Request {
      */
     private afterResponse (response: Response): Response {
         this.updateStateFromResponse(response)
+        this.client.emit('request', response)
         return response
     }
 
@@ -139,6 +159,7 @@ export class Request {
             _csrfToken: this.client.state.csrfToken,
             _uid: this.client.state.userId,
             _uuid: this.client.state.uuid,
+            guid: this.client.state.uuid,
             device_id: this.client.state.deviceId,
             android_device_id: this.client.state.deviceId
         }

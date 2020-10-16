@@ -4,6 +4,8 @@ import { Cookie, CookieJar, MemoryCookieStore } from 'tough-cookie'
 
 import { Client } from './Client'
 
+import { Challenge } from './entities/Challenge'
+
 import { DeviceInfo } from './types/DeviceInfo'
 
 import * as Constants from './constants'
@@ -30,6 +32,8 @@ export class State {
     public authorization?: string
     public passwordEncryptionKeyId?: string
     public passwordEncryptionPublicKey?: string
+
+    public challenge?: Challenge
 
     /**
      * @param client Client managing the instance

@@ -4,7 +4,9 @@ import { Manager } from './Manager'
 import { EXPERIMENTS, LOGIN_EXPERIMENTS } from '../constants/experiments'
 
 /**
- * Manages QE requests
+ * Manages QE requests.
+ * 
+ * @extends {Manager}
  */
 export class QEManager extends Manager {
     /**
