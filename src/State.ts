@@ -7,6 +7,7 @@ import { Client } from './Client'
 import { Challenge } from './entities/Challenge'
 
 import { DeviceInfo } from './types/DeviceInfo'
+import { ExportedState } from './types/ExportedState'
 
 import * as Constants from './constants'
 import { BUILDS } from './constants/builds'
@@ -166,6 +167,76 @@ export class State {
      */
     public getCookieValue (key: string): string | undefined {
         return this.getCookie(key)?.value
+    }
+
+    /**
+     * Get serialized cookie string.
+     * 
+     * @public
+     * 
+     * @returns {string}
+     */
+    public async serializeCookies () {
+        return JSON.stringify(await this.cookieJar.serialize())
+    }
+
+    /**
+     * Deserialize cookie string into new cookie jar.
+     * 
+     * @public
+     *
+     * @param cookies Serialized cookie string
+     * 
+     * @returns {Promise<CookieJar>}
+     */
+    public async deserializeCookies (cookies: string): Promise<CookieJar> {
+        return this.cookieJar = await CookieJar.deserialize(cookies)
+    }
+
+    /**
+     * Export state to JSON object.
+     * 
+     * @public
+     * 
+     * @returns {Promise<ExportedState>}
+     */
+    public async export (): Promise<ExportedState> {
+        return {
+            deviceId: this.deviceId,
+            deviceName: this.deviceName,
+            appBuild: this.appBuild,
+            phoneId: this.phoneId,
+            uuid: this.uuid,
+            adid: this.adid,
+            igWWWClaim: this.igWWWClaim,
+            authorization: this.authorization,
+            passwordEncryptionKeyId: this.passwordEncryptionKeyId,
+            passwordEncryptionPublicKey: this.passwordEncryptionPublicKey,
+            cookies: await this.serializeCookies()
+        }
+    }
+
+    /**
+     * Import an exported state object.
+     *
+     * @public
+     *
+     * @param state Exported state to import
+     * 
+     * @returns {Promise<void>}
+     */
+    public async import (state: ExportedState): Promise<void> {
+        this.deviceId = state.deviceId
+        this.deviceName = state.deviceName
+        this.appBuild = state.appBuild
+        this.phoneId = state.phoneId
+        this.uuid = state.uuid
+        this.adid = state.adid
+        this.igWWWClaim = state.igWWWClaim
+        this.authorization = state.authorization
+        this.passwordEncryptionKeyId = state.passwordEncryptionKeyId
+        this.passwordEncryptionPublicKey = state.passwordEncryptionPublicKey
+        if (state.cookies) await this.deserializeCookies(state.cookies)
     }
 
     /**

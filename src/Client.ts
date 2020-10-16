@@ -34,6 +34,7 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
 
         if (typeof options.username !== 'string') throw new TypeError('username is required and must be a string')
         if (typeof options.password !== 'string') throw new TypeError('password is required and must be a string')
+        if (options.state && typeof options.state === 'string') options.state = JSON.parse(options.state)
 
         this.options = options
     }
@@ -46,7 +47,16 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
      * @returns {Promise<void>} Resolved after logging in and connecting
      */
     public async login (): Promise<void> {
-        await this.account.login(this.options.username, this.options.password)
+        const state = this.options.state
+        const username = this.options.username
+        const password = this.options.password
+
+        if (state) {
+            await this.state.import(state)
+        } else {
+            await this.account.login(username, password)
+        }
+
         await this.realtime.connect()
 
         this.emit('ready')
