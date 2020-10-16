@@ -26,6 +26,7 @@ export class AccountManager extends Manager {
             !this.client.state.passwordEncryptionKeyId ||
             !this.client.state.passwordEncryptionPublicKey
         ) {
+            await this.client.qe.syncExperiments()
             await this.client.qe.syncLoginExperiments()
         }
 
