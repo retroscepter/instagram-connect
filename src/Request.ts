@@ -8,7 +8,6 @@ import { FormData } from './types/FormData'
 import { Headers } from './types/Headers'
 
 import * as Constants from './constants'
-import { ErrorData } from './responses/Error'
 
 type RequestOptions = {
     url: string

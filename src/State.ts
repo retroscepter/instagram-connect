@@ -110,6 +110,17 @@ export class State {
     }
 
     /**
+     * Session ID.
+     * 
+     * @public
+     * 
+     * @returns {string | undefined}
+     */
+    public get sessionId (): string | undefined {
+        return this.getCookieValue('sessionid')
+    }
+
+    /**
      * Device information.
      * 
      * @public
@@ -140,7 +151,7 @@ export class State {
      * @returns {Cookie[]}
      */
     public getCookies (): Cookie[] {
-        return this.cookieJar.getCookiesSync(Constants.API_HOST)
+        return this.cookieJar.getCookiesSync(Constants.WEB_URL)
     }
 
     /**
@@ -174,9 +185,9 @@ export class State {
      * 
      * @public
      * 
-     * @returns {string}
+     * @returns {Promise<string>}
      */
-    public async serializeCookies () {
+    public async serializeCookies (): Promise<string> {
         return JSON.stringify(await this.cookieJar.serialize())
     }
 
@@ -190,7 +201,7 @@ export class State {
      * @returns {Promise<CookieJar>}
      */
     public async deserializeCookies (cookies: string): Promise<CookieJar> {
-        return this.cookieJar = await CookieJar.deserialize(cookies)
+        return this.cookieJar = await CookieJar.deserialize(cookies, this.cookieStore)
     }
 
     /**

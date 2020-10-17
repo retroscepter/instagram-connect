@@ -1,11 +1,15 @@
 
 import { Client } from './Client'
 
+import { Mqtt } from './realtime/Mqtt'
+
 /**
- * Manages connection to Realtime and FBNS.
+ * Interface for Mqtt connection.
  */
 export class Realtime {
     public client: Client
+
+    private mqtt = new Mqtt(this)
 
     /**
      * @param client Client managing the instance
@@ -18,10 +22,10 @@ export class Realtime {
      * Connect to Instagram Realtime and FBNS.
      *
      * @public
-     * 
+     *
      * @returns {Promise<void>} Resolved after connecting
      */
     public async connect (): Promise<void> {
-        
+        await this.mqtt.init()
     }
 }

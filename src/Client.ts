@@ -53,6 +53,7 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
 
         if (state) {
             await this.state.import(state)
+            await this.qe.syncExperiments()
         } else {
             await this.account.login(username, password)
         }
