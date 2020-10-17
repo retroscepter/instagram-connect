@@ -18,6 +18,7 @@
     "@types/luxon": "^1.25.0",
     "@types/tough-cookie": "^4.0.0",
     "chance": "^1.1.7",
+    "deep-parse-json": "^1.0.1",
     "events": "^3.2.0",
     "got": "^11.7.0",
     "mqtts": "^0.1.17",

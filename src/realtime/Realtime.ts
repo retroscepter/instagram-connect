@@ -7,8 +7,16 @@ import { Commands } from './Commands'
 import * as Constants from '../constants'
 import * as RealtimeConstants from '../constants/realtime'
 import * as Topics from '../constants/topics'
-import { unzip } from './util'
-import { thriftRead, thriftReadToObject } from './thrift'
+
+import { Parser } from './parsers/Parser'
+import { SkywalkerParser } from './parsers/SkywalkerParser'
+import { GraphQLParser } from './parsers/GraphQLParser'
+import { IrisParser } from './parsers/IrisParser'
+
+import { Handler } from './handlers/Handler'
+import { SkywalkerHandler } from './handlers/SkywalkerHandler'
+import { GraphQLHandler } from './handlers/GraphQLHandler'
+import { IrisHandler } from './handlers/IrisHandler'
 
 /**
  * Interface for Mqttot connect to Realtime broker.
@@ -18,12 +26,113 @@ export class Realtime extends MqttotClient {
 
     public commands = new Commands(this)
 
+    private parsers: Record<string, Parser> = {
+        [Topics.PUBSUB_ID]: new SkywalkerParser(),
+        [Topics.REALTIME_SUB_ID]: new GraphQLParser(),
+        [Topics.MESSAGE_SYNC_ID]: new IrisParser()
+    }
+
+    private handlers: Record<string, Handler> = {
+        [Topics.PUBSUB_ID]: new SkywalkerHandler(this),
+        [Topics.REALTIME_SUB_ID]: new GraphQLHandler(this),
+        [Topics.MESSAGE_SYNC_ID]: new IrisHandler(this)
+    }
+
     /**
      * @param client Client managing the instance
      */
     constructor (client: Client) {
         super({ url: RealtimeConstants.REALTIME_URL, autoReconnect: true })
         this.client = client
+    }
+
+    /**
+     * Connect to Instagram Realtime and FBNS.
+     *
+     * @public
+     *
+     * @returns {Promise<void>} Resolved after connecting
+     */
+    public async connect (): Promise<void> {
+        this.$connect.subscribe(this.onConnect.bind(this))
+        this.$message.subscribe(this.onMessage.bind(this))
+        this.$error.subscribe(this.onError.bind(this))
+        this.$disconnect.subscribe(this.onDisconnect.bind(this))
+
+        await super.connect()
+    }
+
+    /**
+     * Handle connect.
+     * 
+     * @private
+     * 
+     * @returns {Promise<void>}
+     */
+    private async onConnect (): Promise<void> {
+        if (
+            !this.client.direct.sequenceId ||
+            !this.client.direct.snapshotTimestamp
+        ) {
+            await this.client.direct.getInbox()
+        }
+
+        await this.commands.irisSubscribe({
+            sequenceId: this.client.direct.sequenceId || 1,
+            snapshotTimestamp: this.client.direct.snapshotTimestamp || 1
+        })
+
+        await this.commands.skywalkerSubscribe([
+            `ig/u/v1/${this.client.state.userId}`,
+            `ig/live_notification_subscribe/${this.client.state.userId}`,
+        ])
+
+        await this.commands.graphQlSubscribe([
+            `1/graphqlsubscriptions/17846944882223835/${JSON.stringify({ input_data: { user_id: this.client.state.userId } })}`,
+            `1/graphqlsubscriptions/17867973967082385/${JSON.stringify({ input_data: { user_id: this.client.state.userId } })}`
+        ])
+    }
+
+    /**
+     * Handle disconnect.
+     * 
+     * @private
+     * 
+     * @returns {Promise<void>}
+     */
+    private async onDisconnect (): Promise<void> {
+        
+    }
+
+    /**
+     * Handle error.
+     * 
+     * @private
+     * 
+     * @param error Error
+     * 
+     * @returns {Promise<void>}
+     */
+    private async onError (error: Error): Promise<void> {
+        
+    }
+
+    /**
+     * Handle incoming message.
+     * 
+     * @private
+     * 
+     * @param message Incoming message
+     * 
+     * @returns {Promise<void>}
+     */
+    private async onMessage (message: any): Promise<void> {
+        for (const p in this.parsers) {
+            if (p === message.topic) {
+                const parsed = await this.parsers[p].parse(message.payload)
+                await this.handlers[p].handle(parsed)
+            }
+        }
     }
 
     /**
@@ -58,7 +167,9 @@ export class Realtime extends MqttotClient {
                     Topics.REALTIME_SUB_ID,
                     Topics.SEND_MESSAGE_RESPONSE_ID,
                     Topics.IRIS_SUB_RESPONSE_ID,
-                    Topics.MESSAGE_SYNC_ID
+                    Topics.MESSAGE_SYNC_ID,
+                    Topics.REGION_HINT_ID,
+                    Topics.GRAPHQL_ID
                 ].map(t => parseInt(t)),
                 clientMqttSessionId: mqttSessionId,
                 clientCapabilities: RealtimeConstants.CAPABILITIES,
@@ -89,70 +200,5 @@ export class Realtime extends MqttotClient {
                 auth_cache_enabled: '0'
             }
         }
-    }
-
-    /**
-     * Connect to Instagram Realtime and FBNS.
-     *
-     * @public
-     *
-     * @returns {Promise<void>} Resolved after connecting
-     */
-    public async connect (): Promise<void> {
-        this.$connect.subscribe(this.onConnect.bind(this))
-        this.$disconnect.subscribe(this.onDisconnect.bind(this))
-        this.$error.subscribe(this.onError.bind(this))
-
-        this.listen({ topic: Topics.REALTIME_SUB_ID }).subscribe(this.onRealtimeMessage.bind(this))
-        this.listen({ topic: Topics.MESSAGE_SYNC_ID }).subscribe(this.onMessageSync.bind(this))
-
-        await super.connect()
-    }
-
-    private async onConnect (): Promise<void> {
-        if (
-            !this.client.direct.sequenceId ||
-            !this.client.direct.snapshotTimestamp
-        ) {
-            await this.client.direct.getInbox()
-        }
-
-        await this.commands.irisSubscribe({
-            sequenceId: this.client.direct.sequenceId || 1,
-            snapshotTimestamp: this.client.direct.snapshotTimestamp || 1
-        })
-
-        await this.commands.skywalkerSubscribe([
-            `ig/u/v1/${this.client.state.userId}`,
-            `ig/live_notification_subscribe/${this.client.state.userId}`,
-        ])
-
-        await this.commands.graphQlSubscribe([
-            `1/graphqlsubscriptions/17846944882223835/${JSON.stringify({ input_data: { user_id: this.client.state.userId } })}`,
-            `1/graphqlsubscriptions/17867973967082385/${JSON.stringify({ input_data: { user_id: this.client.state.userId } })}`
-        ])
-    }
-
-    private async onDisconnect (): Promise<void> {
-        
-    }
-
-    private async onError (): Promise<void> {
-        
-    }
-
-    private async onRealtimeMessage (message: any): Promise<void> {
-        const unzipped = await unzip(message.payload)
-        const thriftMessage = thriftRead(unzipped)
-        const eventName = thriftMessage[0].value
-        const eventData = JSON.parse(thriftMessage[1].value)
-        // console.log(eventName, eventData)
-    }
-
-    private async onMessageSync (message: any): Promise<void> {
-        const unzipped = await unzip(message.payload)
-        const json = unzipped.toString('utf8')
-        const data = JSON.parse(json)
-        // console.log(data)
     }
 }

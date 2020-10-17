@@ -3,7 +3,7 @@ import { MqttClient, PacketFlowFunc, ConnectResponsePacket, isConnAck, MqttClien
 
 import { ConnectPacket, thriftPacketConfig } from './ConnectPacket'
 import { thriftWriteFromObject } from './thrift'
-import { compressDeflate } from './util'
+import { compressDeflate } from '../util'
 
 const defaultConnectOptions: ConnectRequestOptions = {
     keepAlive: 20,

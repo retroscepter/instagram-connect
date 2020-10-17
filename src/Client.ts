@@ -63,8 +63,6 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
             await this.account.login(username, password)
         }
 
-        console.log(await this.direct.getInbox())
-
         await this.realtime.connect()
 
         this.emit('ready')
