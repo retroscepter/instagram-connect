@@ -2,6 +2,7 @@
 import { Client } from '../Client'
 
 import { MqttotClient } from './MqttotClient'
+import { Commands } from './Commands'
 
 import * as Constants from '../constants'
 import * as RealtimeConstants from '../constants/realtime'
@@ -12,6 +13,8 @@ import * as Topics from '../constants/topics'
  */
 export class Realtime extends MqttotClient {
     public client: Client
+
+    public commands = new Commands(this)
 
     /**
      * @param client Client managing the instance
@@ -54,7 +57,7 @@ export class Realtime extends MqttotClient {
                     Topics.SEND_MESSAGE_RESPONSE_ID,
                     Topics.IRIS_SUB_RESPONSE_ID,
                     Topics.MESSAGE_SYNC_ID
-                ],
+                ].map(t => parseInt(t)),
                 clientMqttSessionId: mqttSessionId,
                 clientCapabilities: RealtimeConstants.CAPABILITIES,
                 endpointCapabilities: RealtimeConstants.ENDPOINT_CAPABILITIES,
@@ -94,6 +97,24 @@ export class Realtime extends MqttotClient {
      * @returns {Promise<void>} Resolved after connecting
      */
     public async connect (): Promise<void> {
+        /* Setup event listeners */
+
+        this.$connect.subscribe(this.onConnect.bind(this))
+        this.$disconnect.subscribe(this.onDisconnect.bind(this))
+        this.$error.subscribe(this.onError.bind(this))
+
         await super.connect()
+    }
+
+    private async onConnect (): Promise<void> {
+
+    }
+
+    private async onDisconnect (): Promise<void> {
+        
+    }
+
+    private async onError (): Promise<void> {
+        
     }
 }

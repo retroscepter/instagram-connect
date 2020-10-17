@@ -1,10 +1,16 @@
 
-import { MqttClient, PacketFlowFunc, ConnectResponsePacket, isConnAck, MqttClientConstructorOptions } from 'mqtts'
+import { MqttClient, PacketFlowFunc, ConnectResponsePacket, isConnAck, MqttClientConstructorOptions, MqttMessageOutgoing, ConnectRequestOptions } from 'mqtts'
 
 import { ConnectPacket, thriftPacketConfig } from './ConnectPacket'
 import { thriftWriteFromObject } from './thrift'
-
 import { compressDeflate } from './util'
+
+const defaultConnectOptions: ConnectRequestOptions = {
+    keepAlive: 20,
+    protocolLevel: 3,
+    connectDelay: 1000 * 60,
+    clean: true
+}
 
 /**
  * Wrapper around Mqtt for Mqttot protocol.
@@ -18,7 +24,7 @@ export class MqttotClient extends MqttClient {
      */
     constructor (options: MqttClientConstructorOptions) {
         super(options)
-        this.state.connectOptions = { keepAlive: 60 }
+        this.state.connectOptions = defaultConnectOptions
     }
 
     /**
@@ -53,6 +59,29 @@ export class MqttotClient extends MqttClient {
     public async connect (): Promise<void> {
         await this.createConnectPayload()
         await super.connect()
+    }
+
+    /**
+     * Publish compressed payload data to a topic.
+     *
+     * @private
+     *
+     * @param topic Topic to publish to
+     * @param data Compressed payload data
+     * @param qos Qos level
+     *
+     * @returns {Promise<MqttMessageOutgoing}
+     */
+    public async publishData (topic: string, data: Buffer | Record<string, unknown> | string, qos: 1 | 0 = 1): Promise<MqttMessageOutgoing> {
+        return super.publish({
+            topic,
+            qosLevel: qos,
+            payload: data instanceof Buffer ?
+                data :
+                typeof data === 'object' ?
+                Buffer.from(JSON.stringify(data)) :
+                Buffer.from(data)
+        })
     }
 
     /**
