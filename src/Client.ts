@@ -4,7 +4,7 @@ import TypedEmitter from 'typed-emitter'
 
 import { State } from './State'
 import { Request } from './Request'
-import { Realtime } from './Realtime'
+import { Realtime } from './realtime/Realtime'
 
 import { QEManager } from './managers/QE'
 import { AccountManager } from './managers/Account'
