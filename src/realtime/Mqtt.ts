@@ -4,14 +4,16 @@ import { MqttClient, PacketFlowFunc, ConnectResponsePacket, isConnAck } from 'mq
 import { Client } from '../Client'
 import { Realtime } from '../Realtime'
 
-import { ConnectPacket } from './ConnectPacket'
+import { ConnectPacket, thriftPacketConfig } from './ConnectPacket'
+import { thriftWriteFromObject } from './thrift'
 
 import * as Constants from '../constants'
-import * as MqttConstants from '../constants/mqtt'
+import * as RealtimeConstants from '../constants/realtime'
 import * as Topics from '../constants/topics'
+import { compressDeflate } from './util'
 
 /**
- * Manages Mqtt connection to Realtime broker and FBNS.
+ * Wrapper around Mqtt for custom thrift payloads.
  */
 export class Mqtt extends MqttClient {
     realtime: Realtime
@@ -20,10 +22,11 @@ export class Mqtt extends MqttClient {
     requirePayload: boolean = false
 
     /**
-     * @param realtime Realtime manager manging this instance
+     * @param realtime Realtime manager managing this instance
      */
     constructor (realtime: Realtime) {
-        super({ url: MqttConstants.REALTIME_URL, autoReconnect: true })
+        super({ url: RealtimeConstants.REALTIME_URL, autoReconnect: true })
+        this.state.connectOptions = { keepAlive: 60 }
         this.realtime = realtime
     }
 
@@ -48,55 +51,38 @@ export class Mqtt extends MqttClient {
     private get mqttConnectionData (): Record<string, unknown> {
         if (!this.client.state.userId) throw new Error('user id is not defined')
         if (!this.client.state.sessionId) throw new Error('session id is not defined')
-        if (!this.client.state.deviceId) throw new Error('device id is not defined')
+        if (!this.client.state.phoneId) throw new Error('device id is not defined')
 
-        const userId = parseInt(this.client.state.userId)
-        const sessionId = process.uptime() * 1000
+        const userId = BigInt(this.client.state.userId)
+        const sessionId = this.client.state.sessionId
+        const mqttSessionId = BigInt(Date.now()) & BigInt(0xffffffff)
         const userAgent = this.client.state.appUserAgent
-        const deviceId = this.client.state.deviceId
+        const deviceId = this.client.state.phoneId
+        const password = `sessionid=${sessionId}`
 
         return {
-            u: userId,
-            a: userAgent,
-            cp: MqttConstants.CAPABILITIES,
-            mqtt_sid: sessionId,
-            nwt: MqttConstants.NETWORK_TYPE,
-            nwst: MqttConstants.NETWORK_SUBTYPE,
-            chat_on: false,
-            no_auto_fg: true,
-            d: deviceId,
-            ds: '',
-            fg: false,
-            ecp: MqttConstants.ENDPOINT_CAPABILITIES,
-            pf: MqttConstants.PUBLISH_FORMAT,
-            ct: MqttConstants.CLIENT_TYPE,
-            aid: Constants.FACEBOOK_ANALYTICS_APPLICATION_ID,
-            st: this.mqttDefaultTopics,
-            clientStack: MqttConstants.CLIENT_STACK,
-            app_specific_info: this.mqttAppSpecificInfo
+            clientIdentifier: deviceId.substring(0, 20),
+            password,
+            clientInfo: {
+                userId,
+                userAgent,
+                deviceId,
+                deviceSecret: '',
+                subscribeTopics: this.mqttDefaultTopics,
+                clientMqttSessionId: mqttSessionId,
+                clientCapabilities: RealtimeConstants.CAPABILITIES,
+                endpointCapabilities: RealtimeConstants.ENDPOINT_CAPABILITIES,
+                networkType: RealtimeConstants.NETWORK_TYPE,
+                networkSubtype: RealtimeConstants.NETWORK_SUBTYPE,
+                publishFormat: RealtimeConstants.PUBLISH_FORMAT,
+                clientType: RealtimeConstants.CLIENT_TYPE,
+                appId: BigInt(Constants.FACEBOOK_ANALYTICS_APPLICATION_ID),
+                clientStack: RealtimeConstants.CLIENT_STACK,
+                noAutomaticForeground: true,
+                isInitiallyForeground: false
+            },
+            appSpecificInfo: this.mqttAppSpecificInfo
         }
-    }
-
-    /**
-     * Mqtt connection password.
-     * 
-     * @private
-     * 
-     * @returns {string | undefined}
-     */
-    private get mqttPassword (): string | undefined {
-        return this.client.state.sessionId
-    }
-
-    /**
-     * Mqtt connection client ID.
-     * 
-     * @private
-     * 
-     * @returns {string | undefined}
-     */
-    private get mqttClientId (): string | undefined {
-        return this.client.state.deviceId
     }
 
     /**
@@ -104,9 +90,9 @@ export class Mqtt extends MqttClient {
      * 
      * @private
      * 
-     * @returns {string[]}
+     * @returns {number[]}
      */
-    private get mqttDefaultTopics (): string[] {
+    private get mqttDefaultTopics (): number[] {
         return [
             Topics.PUBSUB_ID,
             Topics.REALTIME_SUB_ID,
@@ -143,19 +129,26 @@ export class Mqtt extends MqttClient {
     }
 
     /**
+     * Create initial connection payload.
+     * 
+     * @private
+     * 
+     * @returns {Promise<void>}
+     */
+    private async createConnectPayload (): Promise<void> {
+        this.connectPayload = await compressDeflate(thriftWriteFromObject(this.mqttConnectionData, thriftPacketConfig))
+    }
+
+    /**
      * Connect to Mqtt broker.
      *
      * @public
      * 
      * @returns {Promise<void>}
      */
-    public async init (): Promise<void> {
-        this.$connect.subscribe(console.log)
-        this.$disconnect.subscribe(console.log)
-        this.$warning.subscribe(console.warn)
-        this.$error.subscribe(console.error)
-        this.$message.subscribe(console.log)
-        await this.connect()
+    public async connect (): Promise<void> {
+        await this.createConnectPayload()
+        await super.connect()
     }
 
     /**
@@ -166,26 +159,23 @@ export class Mqtt extends MqttClient {
      * @returns {PacketFlowFunc<unknown>}
      */
     protected getConnectFlow (): PacketFlowFunc<unknown> {
-        return success => ({
-            start: this.onConnectFlowStart,
-            accept: this.onConnectFlowAccept,
-            next: this.onConnectFlowNext(success)
+        return (success, error) => ({
+            start: this.onConnectFlowStart.bind(this),
+            accept: this.onConnectFlowAccept.bind(this),
+            next: this.onConnectFlowNext(success, error).bind(this)
         })
     }
 
     /**
      * Connect flow start handler.
-     * 
+     *  
      * @private
      * 
      * @returns {ConnectPacket}
      */
     private onConnectFlowStart (): ConnectPacket {
-        if (this.connectPayload) {
-            return new ConnectPacket(this.connectPayload)
-        } else {
-            throw new Error('connect payload is missing')
-        }
+        const packet = new ConnectPacket(this.connectPayload)
+        return packet
     }
 
     /**
@@ -205,20 +195,23 @@ export class Mqtt extends MqttClient {
      * @private
      *
      * @param success Success callback
+     * @param error Error callback
      * 
      * @returns {(packet: ConnectResponsePacket) => void}
      */
-    private onConnectFlowNext (success: unknown): (packet: ConnectResponsePacket) => void {
+    private onConnectFlowNext (success: unknown, error: unknown): (packet: ConnectResponsePacket) => void {
         return (packet: ConnectResponsePacket) => {
             if (packet.isSuccess) {
                 if (packet.payload?.length || !this.requirePayload) {
                     // @ts-expect-error Function isn't typed
                     success(packet)
                 } else {
-                    throw new Error('CONNACK: no payload')
+                    // @ts-expect-error Function isn't typed
+                    error(new Error('CONNACK: no payload'))
                 }
             } else {
-                throw new Error('CONNACK: connection error')
+                // @ts-expect-error Function isn't typed
+                error(new Error('CONNACK: connection error'))
             }
         }
     }

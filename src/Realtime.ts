@@ -26,6 +26,6 @@ export class Realtime {
      * @returns {Promise<void>} Resolved after connecting
      */
     public async connect (): Promise<void> {
-        await this.mqtt.init()
+        await this.mqtt.connect()
     }
 }
