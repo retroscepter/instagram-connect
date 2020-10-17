@@ -17,7 +17,7 @@ const defaultConnectOptions: ConnectRequestOptions = {
  */
 export class MqttotClient extends MqttClient {
     connectPayload?: Buffer
-    requirePayload: boolean = false
+    requirePayload = false
 
     /**
      * @param options Connection options
@@ -68,19 +68,21 @@ export class MqttotClient extends MqttClient {
      *
      * @param topic Topic to publish to
      * @param data Compressed payload data
-     * @param qos Qos level
+     * @param qosLevel Qos level
      *
      * @returns {Promise<MqttMessageOutgoing}
      */
-    public async publishData (topic: string, data: Buffer | Record<string, unknown> | string, qos: 1 | 0 = 1): Promise<MqttMessageOutgoing> {
+    public async publishData (topic: string, data: Buffer | Record<string, unknown> | string, qosLevel: 1 | 0 = 1): Promise<MqttMessageOutgoing> {
+        const payload = data instanceof Buffer ?
+            data :
+            typeof data === 'object' ?
+            await compressDeflate(Buffer.from(JSON.stringify(data))) :
+            await compressDeflate(Buffer.from(data))
+
         return super.publish({
             topic,
-            qosLevel: qos,
-            payload: data instanceof Buffer ?
-                data :
-                typeof data === 'object' ?
-                Buffer.from(JSON.stringify(data)) :
-                Buffer.from(data)
+            qosLevel,
+            payload
         })
     }
 

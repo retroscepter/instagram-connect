@@ -42,6 +42,6 @@ export function tryUnzipSync (data: Buffer): Buffer {
     }
 }
 
-export function isJson (buffer: Buffer) {
+export function isJson (buffer: Buffer): RegExpMatchArray | null {
     return String.fromCharCode(buffer[0]).match(/[{[]/)
 }

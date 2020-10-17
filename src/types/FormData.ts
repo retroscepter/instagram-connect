@@ -1,4 +1,4 @@
 
 export type FormData = {
-    [x: string]: string | number | FormData | undefined
+    [x: string]: unknown
 }

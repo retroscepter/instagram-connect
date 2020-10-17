@@ -27,7 +27,7 @@ export class Commands {
      * @returns {Promise<void>}
      */
     public async subscribe (topic: string, topics: string[]): Promise<void> {
-        await this.client.publishData(topic, { sub: topics })
+        await this.client.publishData(topic, { sub: topics, unsub: [] })
     }
 
     public async graphQlSubscribe (topics: string[]): Promise<void> {
@@ -44,13 +44,13 @@ export class Commands {
      * @public
      *
      * @param options Subscription options
-     * @param options.sequence Iris sequence ID.
-     * @param options.snapshot Iris snapshot timestamp in ms.
+     * @param options.sequenceId Iris sequence ID.
+     * @param options.snapshotTimestamp Iris snapshot timestamp in ms.
      */
-    public async irisSubscribe (options: { sequence: number, snapshot: number }): Promise<void> {
+    public async irisSubscribe (options: { sequenceId: number, snapshotTimestamp: number }): Promise<void> {
         await this.client.publishData(Topics.IRIS_SUB_ID, {
-            seq_id: options.sequence,
-            snapshot_at_ms: options.snapshot
+            seq_id: options.sequenceId,
+            snapshot_at_ms: options.snapshotTimestamp
         })
     }
 }

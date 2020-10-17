@@ -1,4 +1,6 @@
 
+/* eslint-disable */
+
 import {
     ThriftMessage,
     ThriftPacketDescriptor,

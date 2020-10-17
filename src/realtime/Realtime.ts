@@ -7,6 +7,8 @@ import { Commands } from './Commands'
 import * as Constants from '../constants'
 import * as RealtimeConstants from '../constants/realtime'
 import * as Topics from '../constants/topics'
+import { unzip } from './util'
+import { thriftRead, thriftReadToObject } from './thrift'
 
 /**
  * Interface for Mqttot connect to Realtime broker.
@@ -97,17 +99,38 @@ export class Realtime extends MqttotClient {
      * @returns {Promise<void>} Resolved after connecting
      */
     public async connect (): Promise<void> {
-        /* Setup event listeners */
-
         this.$connect.subscribe(this.onConnect.bind(this))
         this.$disconnect.subscribe(this.onDisconnect.bind(this))
         this.$error.subscribe(this.onError.bind(this))
+
+        this.listen({ topic: Topics.REALTIME_SUB_ID }).subscribe(this.onRealtimeMessage.bind(this))
+        this.listen({ topic: Topics.MESSAGE_SYNC_ID }).subscribe(this.onMessageSync.bind(this))
 
         await super.connect()
     }
 
     private async onConnect (): Promise<void> {
+        if (
+            !this.client.direct.sequenceId ||
+            !this.client.direct.snapshotTimestamp
+        ) {
+            await this.client.direct.getInbox()
+        }
 
+        await this.commands.irisSubscribe({
+            sequenceId: this.client.direct.sequenceId || 1,
+            snapshotTimestamp: this.client.direct.snapshotTimestamp || 1
+        })
+
+        await this.commands.skywalkerSubscribe([
+            `ig/u/v1/${this.client.state.userId}`,
+            `ig/live_notification_subscribe/${this.client.state.userId}`,
+        ])
+
+        await this.commands.graphQlSubscribe([
+            `1/graphqlsubscriptions/17846944882223835/${JSON.stringify({ input_data: { user_id: this.client.state.userId } })}`,
+            `1/graphqlsubscriptions/17867973967082385/${JSON.stringify({ input_data: { user_id: this.client.state.userId } })}`
+        ])
     }
 
     private async onDisconnect (): Promise<void> {
@@ -116,5 +139,20 @@ export class Realtime extends MqttotClient {
 
     private async onError (): Promise<void> {
         
+    }
+
+    private async onRealtimeMessage (message: any): Promise<void> {
+        const unzipped = await unzip(message.payload)
+        const thriftMessage = thriftRead(unzipped)
+        const eventName = thriftMessage[0].value
+        const eventData = JSON.parse(thriftMessage[1].value)
+        // console.log(eventName, eventData)
+    }
+
+    private async onMessageSync (message: any): Promise<void> {
+        const unzipped = await unzip(message.payload)
+        const json = unzipped.toString('utf8')
+        const data = JSON.parse(json)
+        // console.log(data)
     }
 }

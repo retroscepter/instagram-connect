@@ -9,6 +9,7 @@ import { Realtime } from './realtime/Realtime'
 import { QEManager } from './managers/QE'
 import { AccountManager } from './managers/Account'
 import { ChallengeManager } from './managers/Challenge'
+import { DirectManager } from './managers/Direct'
 
 import { ClientEvents } from './types/ClientEvents'
 import { ClientOptions } from './types/ClientOptions'
@@ -26,9 +27,13 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
     public qe = new QEManager(this)
     public account = new AccountManager(this)
     public challenge = new ChallengeManager(this)
+    public direct = new DirectManager(this)
 
     public options: ClientOptions
 
+    /**
+     * @param options Client options
+     */
     constructor (options: ClientOptions) {
         super()
 
@@ -57,6 +62,8 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
         } else {
             await this.account.login(username, password)
         }
+
+        console.log(await this.direct.getInbox())
 
         await this.realtime.connect()
 

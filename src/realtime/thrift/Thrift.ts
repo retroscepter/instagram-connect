@@ -1,4 +1,6 @@
 
+/* eslint-disable */
+
 export interface ThriftMessage {
     context: string
     field: number
