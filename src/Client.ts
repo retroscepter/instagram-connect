@@ -1,4 +1,5 @@
 
+import { Response } from 'got'
 import { EventEmitter } from 'events'
 import TypedEmitter from 'typed-emitter'
 
@@ -11,8 +12,26 @@ import { AccountManager } from './managers/Account'
 import { ChallengeManager } from './managers/Challenge'
 import { DirectManager } from './managers/Direct'
 
-import { ClientEvents } from './types/ClientEvents'
-import { ClientOptions } from './types/ClientOptions'
+import { Challenge } from './entities/Challenge'
+import { DirectThread } from './entities/DirectThread'
+import { DirectThreadItem } from './entities/DirectThreadItem'
+
+export type ClientOptions = {
+    username: string
+    password: string,
+    state?: { [key: string]: string | number | boolean | null }
+}
+
+export type ClientEvents = {
+    ready: () => void
+    request: (r: Response) => void
+    challenge: (c: Challenge) => void
+    threadCreate: (t: DirectThread) => void
+    threadUpdate: (t: DirectThread) => void
+    threadItemCreate: (i: DirectThreadItem) => void
+    threadItemUpdate: (i: DirectThreadItem) => void
+    threadItemRemove: (t: string, i: string) => void
+}
 
 /**
  * Main class for interacting with the Instagram private API.

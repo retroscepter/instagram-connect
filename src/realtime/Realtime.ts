@@ -74,17 +74,12 @@ export class Realtime extends MqttotClient {
      * @returns {Promise<void>}
      */
     private async onConnect (): Promise<void> {
-        if (
-            !this.client.state.irisSequenceId ||
-            !this.client.state.irisSnapshotTimestamp
-        ) {
-            await this.client.direct.getInbox()
-        }
-
         await this.commands.irisSubscribe({
             sequenceId: this.client.state.irisSequenceId || 1,
             snapshotTimestamp: this.client.state.irisSnapshotTimestamp || 1
         })
+
+        await this.client.direct.getInbox()
 
         await this.commands.skywalkerSubscribe([
             `ig/u/v1/${this.client.state.userId}`,
