@@ -196,7 +196,7 @@ export class User extends Entity {
      * @returns {Promise<User>}
      */
     public async getMore (): Promise<User> {
-        const user = await this.client.users.getUserRaw(this.id)
+        const { user } = await this.client.users.getUserRaw(this.id)
         if (user) this.update(user)
         return this
     }

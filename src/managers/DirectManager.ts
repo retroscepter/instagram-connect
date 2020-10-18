@@ -6,16 +6,16 @@ import { Manager } from './Manager'
 import { DirectThread, DirectThreadData } from '../entities/DirectThread'
 import { DirectThreadItem, DirectThreadItemData } from '../entities/DirectThreadItem'
 
-export type DirectInboxData = {
-    inbox: DirectInboxInboxData
+export type DirectInboxResponseData = {
+    status: 'ok' | 'fail'
+    inbox: DirectInboxData
     seq_id: number
     snapshot_at_ms: number
     pending_requests_total: number
     has_pending_top_requests: boolean
-    status: 'ok' | 'failed'
 }
 
-export type DirectInboxInboxData = {
+export type DirectInboxData = {
     threads: DirectThreadData[]
     has_older: boolean
     unseen_count: number
@@ -31,6 +31,11 @@ export type DirectInboxCursorData = {
     cursor_thread_v2_id: number
 }
 
+export type DirectThreadResponseData = {
+    status: 'ok' | 'fail'
+    thread: DirectThreadData
+}
+
 /**
  * Manages direct threads and messages.
  *
@@ -40,7 +45,7 @@ export class DirectManager extends Manager {
     threads = new LRU<string, DirectThread>()
 
     /**
-     * Get direct inbox threads.
+     * Get direct inbox threads and return raw response data.
      * 
      * @public
      * 
@@ -48,7 +53,7 @@ export class DirectManager extends Manager {
      *
      * @returns {Promise<DirectInboxData>}
      */
-    public async getInbox (limit: number = 20): Promise<DirectInboxData> {
+    public async getInboxRaw (limit: number = 20): Promise<DirectInboxResponseData> {
         const data = {
             visual_message_return_type: 'unseen',
             thread_message_limit: 10,
@@ -56,21 +61,75 @@ export class DirectManager extends Manager {
             limit
         }
 
-        const response = await this.client.request.send<DirectInboxData>({
+        const response = await this.client.request.send<DirectInboxResponseData>({
             url: 'api/v1/direct_v2/inbox',
             data
         })
 
-        this.client.state.irisSequenceId = response.body.seq_id
-        this.client.state.irisSnapshotTimestamp = response.body.snapshot_at_ms
+        return response.body
+    }
 
-        for (const t in response.body.inbox.threads) {
-            const threadData = response.body.inbox.threads[t]
-            const isNewThread = !this.threads.has(threadData.thread_id)
-            this.client.emit(isNewThread ? 'threadCreate' : 'threadUpdate', await this.upsertThread(threadData))
+    /**
+     * Get direct inbox threads and update state and thread cache.
+     * 
+     * @public
+     * 
+     * @param limit Thread limit
+     * 
+     * @returns {Promise<DirectThread[]>}
+     */
+    public async getInbox (limit: number = 20): Promise<DirectThread[]> {
+        const response = await this.getInboxRaw(limit)
+
+        this.client.state.irisSequenceId = response.seq_id
+        this.client.state.irisSnapshotTimestamp = response.snapshot_at_ms
+        
+        const threads: DirectThread[] = []
+
+        for (const t in response.inbox.threads) {
+            const threadData = response.inbox.threads[t]
+            const thread = this.upsertThread(threadData)
+            threads.push(thread)
         }
 
+        return threads
+    }
+
+    /**
+     * Get thread by ID and return raw response data.
+     * 
+     * @public
+     *
+     * @param id Thread ID.
+     * 
+     * @returns {Promise<any>}
+     */
+    public async getThreadRaw (id: string): Promise<DirectThreadResponseData> {
+        const data = {
+            visual_message_return_type: 'unseen',
+            limit: 10
+        }
+
+        const response = await this.client.request.send<DirectThreadResponseData>({
+            url: `api/v1/direct_v2/threads/${id}/`,
+            data
+        })
+
         return response.body
+    }
+
+    /**
+     * Get thread by ID and update thread cache.
+     * 
+     * @public
+     * 
+     * @param id Thread ID
+     * 
+     * @returns {Promise<DirectThread | undefined>}
+     */
+    public async getThread (id: string): Promise<DirectThread | undefined> {
+        const { thread: threadData } = await this.getThreadRaw(id)
+        if (threadData) return this.upsertThread(threadData)
     }
 
     /**
@@ -80,15 +139,17 @@ export class DirectManager extends Manager {
      *
      * @param data Thread data
      * 
-     * @returns {Promise<DirectThread>}
+     * @returns {DirectThread}
      */
-    public async upsertThread (data: DirectThreadData): Promise<DirectThread> {
+    public upsertThread (data: DirectThreadData): DirectThread {
         const id = data.thread_id
         const thread = this.threads.get(id)
         if (thread) {
+            this.client.emit('threadUpdate', thread)
             return thread.update(data)
         } else {
             const newThread = new DirectThread(this.client, data)
+            this.client.emit('threadCreate', newThread)
             this.threads.set(id, newThread)
             return newThread
         }
@@ -109,16 +170,17 @@ export class DirectManager extends Manager {
         if (!thread) {
             try {
                 /**
-                 * If fetching the inbox or finding the new thread
+                 * If fetching the thread or finding the new thread
                  * is unsuccessful and throws an error, fall back to
                  * creating a thread item with no parent thread. 
                  */
-                await this.getInbox(1)
-                const thread = this.threads.get(threadId)
-                // @ts-expect-error catch block will handle the thread being undefined
+                const thread = await this.getThread(threadId)
+                // @ts-expect-error this is intential as the catch block will handle this being undefined
                 return thread.upsertItem(data)
             } catch {
-                return new DirectThreadItem(this.client, undefined, data)
+                const newThreadItem = new DirectThreadItem(this.client, undefined, data)
+                this.client.emit('threadItemCreate', newThreadItem)
+                return newThreadItem
             }
         } else {
             return thread.upsertItem(data)

@@ -94,6 +94,19 @@ export class DirectThread extends Entity {
     }
 
     /**
+     * Get thread data and update state.
+     * 
+     * @public
+     * 
+     * @returns {Promise<DirectThread>}
+     */
+    public async getMore (): Promise<DirectThread> {
+        const { thread } = await this.client.direct.getThreadRaw(this.id)
+        if (thread) this.update(thread)
+        return this
+    }
+
+    /**
      * Update state from thread data.
      *
      * @public
@@ -136,9 +149,11 @@ export class DirectThread extends Entity {
         const id = BigInt(data.item_id).toString()
         const item = this.items.get(id)
         if (item) {
+            this.client.emit('threadItemUpdate', item)
             return item.update(data)
         } else {
             const newItem = new DirectThreadItem(this.client, this, data)
+            this.client.emit('threadItemCreate', newItem)
             this.items.set(id, newItem)
             return newItem
         }
@@ -154,6 +169,8 @@ export class DirectThread extends Entity {
      * @returns {void}
      */
     public removeItem (id: number | string): void {
-        this.items.del(typeof id === 'string' ? id : BigInt(id).toString())
+        const itemId = typeof id === 'string' ? id : BigInt(id).toString()
+        this.items.del(itemId)
+        this.client.emit('threadItemRemove', this.id, itemId)
     }
 }

@@ -10,6 +10,7 @@ export type DirectThreadItemData = {
     user_id: number
     timestamp: number
     item_type: string
+    thread_id: string
     text?: string
     media?: any
     media_share?: any
@@ -30,6 +31,7 @@ export class DirectThreadItem extends Entity {
     public id: string = ''
     public user?: User
     public userId?: string
+    public threadId?: string
     public timestamp: number = Date.now()
     public type: string = ''
     public text?: string
@@ -64,6 +66,8 @@ export class DirectThreadItem extends Entity {
      */
     public update (data: DirectThreadItemData): DirectThreadItem {
         if (data.item_id) this.id = BigInt(data.item_id).toString()
+        if (data.thread_id) this.threadId = data.thread_id
+        if (this.thread) this.threadId = this.thread.id
         if (data.user_id) {
             this.userId = BigInt(data.user_id).toString()
             this.user = this.thread?.users.find(user => user.id === this.userId)

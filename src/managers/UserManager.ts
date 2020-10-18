@@ -5,14 +5,14 @@ import { Manager } from './Manager'
 
 import { User, UserData, UserFriendshipStatusData } from '../entities/User'
 
-export type UserSearchData = {
+export type UserSearchResponseData = {
     num_results: number
     users: UserSearchResultData[]
 }
 
-export type UserInfoData = {
+export type UserInfoResponseData = {
     status: 'ok' | 'fail'
-    user: UserData
+    user?: UserData
 }
 
 export type UserSearchResultData = Partial<UserData> & {
@@ -47,20 +47,20 @@ export class UserManager extends Manager {
      * @param username Username
      * @param limit Result limit
      * 
-     * @returns {Promise<UserSearchResultData[]>}
+     * @returns {Promise<UserSearchResponseData>}
      */
-    public async searchRaw (username: string, limit: number = 30): Promise<UserSearchResultData[]> {
+    public async searchRaw (username: string, limit: number = 30): Promise<UserSearchResponseData> {
         const data = {
             q: username,
             count: limit
         }
 
-        const { body } = await this.client.request.send<UserSearchData>({
+        const response = await this.client.request.send<UserSearchResponseData>({
             url: 'api/v1/users/search/',
             data
         })
 
-        return body.users
+        return response.body
     }
 
     /**
@@ -74,7 +74,7 @@ export class UserManager extends Manager {
      * @returns {Promise<User>}
      */
     public async search (username: string, limit: number = 30): Promise<User[]> {
-        const users = await this.searchRaw(username, limit)
+        const { users } = await this.searchRaw(username, limit)
         return users.map(user => new User(this.client, user))
     }
 
@@ -100,14 +100,14 @@ export class UserManager extends Manager {
      * 
      * @param id User ID
      * 
-     * @returns {Promise<UserData | undefined>}
+     * @returns {Promise<UserInfoResponseData>}
      */
-    public async getUserRaw (id: string | number): Promise<UserData | undefined> {
-        const { body } = await this.client.request.send<UserInfoData>({
+    public async getUserRaw (id: string | number): Promise<UserInfoResponseData> {
+        const response = await this.client.request.send<UserInfoResponseData>({
             url: `api/v1/users/${id}/info/`
         })
 
-        return body.user
+        return response.body
     }
 
     /**
@@ -120,7 +120,7 @@ export class UserManager extends Manager {
      * @returns {Promise<User | undefined>}
      */
     public async getUser (id: string | number): Promise<User | undefined> {
-        const user = await this.getUserRaw(id)
+        const { user } = await this.getUserRaw(id)
         return user ? new User(this.client, user) : undefined
     }
 
