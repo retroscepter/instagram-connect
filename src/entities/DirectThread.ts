@@ -138,7 +138,7 @@ export class DirectThread extends Entity {
         if (item) {
             return item.update(data)
         } else {
-            const newItem = new DirectThreadItem(this, data)
+            const newItem = new DirectThreadItem(this.client, this, data)
             this.items.set(id, newItem)
             return newItem
         }

@@ -107,9 +107,19 @@ export class DirectManager extends Manager {
     public async upsertThreadItem (threadId: string, data: DirectThreadItemData): Promise<DirectThreadItem | undefined> {
         const thread = this.threads.get(threadId)
         if (!thread) {
-            await this.getInbox(1)
-            const thread = this.threads.get(threadId)
-            return thread?.upsertItem(data)
+            try {
+                /**
+                 * If fetching the inbox or finding the new thread
+                 * is unsuccessful and throws an error, fall back to
+                 * creating a thread item with no parent thread. 
+                 */
+                await this.getInbox(1)
+                const thread = this.threads.get(threadId)
+                // @ts-expect-error catch block will handle the thread being undefined
+                return thread.upsertItem(data)
+            } catch {
+                return new DirectThreadItem(this.client, undefined, data)
+            }
         } else {
             return thread.upsertItem(data)
         }

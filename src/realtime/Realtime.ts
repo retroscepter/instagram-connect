@@ -73,12 +73,21 @@ export class Realtime extends MqttotClient {
      * @returns {Promise<void>}
      */
     private async onConnect (): Promise<void> {
-        await this.commands.irisSubscribe({
-            sequenceId: this.client.state.irisSequenceId || 1,
-            snapshotTimestamp: this.client.state.irisSnapshotTimestamp || 1
-        })
+        const oldSequenceId = this.client.state.irisSequenceId
+        const oldSnapshotTimestamp = this.client.state.irisSnapshotTimestamp
 
-        await this.client.direct.getInbox()
+        try {
+            await this.client.direct.getInbox()
+        } catch {
+            if (!oldSequenceId || !oldSnapshotTimestamp) {
+                throw new Error('could not get iris subscription data, you may have been ratelimited')
+            }
+        }
+
+        await this.commands.irisSubscribe({
+            sequenceId: oldSequenceId || this.client.state.irisSequenceId || 1,
+            snapshotTimestamp: oldSnapshotTimestamp || this.client.state.irisSnapshotTimestamp || 1
+        })
 
         await this.commands.skywalkerSubscribe([
             `ig/u/v1/${this.client.state.userId}`,
