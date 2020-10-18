@@ -170,7 +170,7 @@ export class Realtime extends MqttotClient {
                     Topics.GRAPHQL_ID
                 ].map(t => parseInt(t)),
                 clientMqttSessionId: mqttSessionId,
-                clientCapabilities: Constants.CAPABILITIES,
+                clientCapabilities: Constants.REALTIME_CAPABILITIES,
                 endpointCapabilities: Constants.ENDPOINT_CAPABILITIES,
                 networkType: Constants.NETWORK_TYPE,
                 networkSubtype: Constants.NETWORK_SUBTYPE,
