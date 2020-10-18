@@ -43,15 +43,17 @@ export class DirectManager extends Manager {
      * Get direct inbox threads.
      * 
      * @public
+     * 
+     * @param limit Thread limit
      *
      * @returns {Promise<DirectInboxData>}
      */
-    public async getInbox (): Promise<DirectInboxData> {
+    public async getInbox (limit: number = 20): Promise<DirectInboxData> {
         const data = {
             visual_message_return_type: 'unseen',
             thread_message_limit: 10,
             persistentBadging: true,
-            limit: 20
+            limit
         }
 
         const response = await this.client.request.send<DirectInboxData>({
@@ -65,7 +67,7 @@ export class DirectManager extends Manager {
         for (const t in response.body.inbox.threads) {
             const threadData = response.body.inbox.threads[t]
             const isNewThread = !this.threads.has(threadData.thread_id)
-            this.client.emit(isNewThread ? 'threadCreate' : 'threadUpdate', this.upsertThread(threadData))
+            this.client.emit(isNewThread ? 'threadCreate' : 'threadUpdate', await this.upsertThread(threadData))
         }
 
         return response.body
@@ -78,9 +80,9 @@ export class DirectManager extends Manager {
      *
      * @param data Thread data
      * 
-     * @returns {DirectThread}
+     * @returns {Promise<DirectThread>}
      */
-    public upsertThread (data: DirectThreadData): DirectThread {
+    public async upsertThread (data: DirectThreadData): Promise<DirectThread> {
         const id = data.thread_id
         const thread = this.threads.get(id)
         if (thread) {
@@ -100,11 +102,17 @@ export class DirectManager extends Manager {
      * @param threadId Thread ID
      * @param data Thread item data
      * 
-     * @returns {DirectThreadItem | undefined}
+     * @returns {Promise<DirectThreadItem | undefined>}
      */
-    public upsertThreadItem (threadId: string, data: DirectThreadItemData): DirectThreadItem | undefined {
+    public async upsertThreadItem (threadId: string, data: DirectThreadItemData): Promise<DirectThreadItem | undefined> {
         const thread = this.threads.get(threadId)
-        return thread?.upsertItem(data)
+        if (!thread) {
+            await this.getInbox(1)
+            const thread = this.threads.get(threadId)
+            return thread?.upsertItem(data)
+        } else {
+            return thread.upsertItem(data)
+        }
     }
 
     /**
@@ -115,9 +123,9 @@ export class DirectManager extends Manager {
      * @param threadId Thread ID
      * @param itemId Thread item ID
      * 
-     * @returns {void}
+     * @returns {Promise<void>}
      */
-    public removeThreadItem (threadId: string, itemId: string | number): void {
+    public async removeThreadItem (threadId: string, itemId: string | number): Promise<void> {
         const thread = this.threads.get(threadId)
         return thread?.removeItem(itemId)
     }

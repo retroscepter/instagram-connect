@@ -4,12 +4,14 @@ import LRU from 'lru-cache'
 import { Client } from '../Client'
 
 import { Entity } from './Entity'
+import { User, UserData, UserFriendshipStatusData } from './User'
 import { DirectThreadItem, DirectThreadItemData } from './DirectThreadItem'
 
 export type DirectThreadData = {
     thread_id: string
     thread_v2_id: string
     admin_user_ids: string[]
+    users: DirectThreadUserData[]
     items: DirectThreadItemData[]
     last_activity_at: number
     muted: boolean
@@ -43,6 +45,21 @@ export type DirectThreadData = {
     last_mentioned_item_id: number
 }
 
+export type DirectThreadUserData = Partial<UserData> & {
+    pk: number
+    username: string
+    full_name: string
+    is_private: boolean
+    profile_pic_url: string,
+    friendship_status: UserFriendshipStatusData
+    is_verified: boolean
+    has_anonymous_profile_picture: boolean
+    has_threads_app: boolean
+    is_using_unified_inbox_for_direct: boolean
+    interop_messaging_user_fbid: number
+    account_badges: any[]
+}
+
 export type DirectThreadLastSeenData = {
     timestamp: string
     item_id: string
@@ -50,7 +67,7 @@ export type DirectThreadLastSeenData = {
 
 export class DirectThread extends Entity {
     public id: string = ''
-    public users: any[] = []
+    public users: User[] = []
     public lastActivityTimestamp: number = Date.now()
     public muted: boolean = false
     public pinned: boolean = false
@@ -83,9 +100,9 @@ export class DirectThread extends Entity {
      * 
      * @param data Thread data
      * 
-     * @returns {DirectThread}
+     * @returns {Promise<DirectThread>}
      */
-    public update (data: DirectThreadData): DirectThread {
+    public async update (data: DirectThreadData): Promise<DirectThread> {
         if (data.thread_id) this.id = data.thread_id
         if (data.last_activity_at) this.lastActivityTimestamp = data.last_activity_at
         if (data.muted) this.muted = data.muted
@@ -100,7 +117,8 @@ export class DirectThread extends Entity {
         if (data.mentions_muted) this.mentionsMuted = data.mentions_muted
         if (data.approval_required_for_new_members) this.approvalRequired = data.approval_required_for_new_members
         if (data.read_state) this.seen = data.read_state === 1 ? true : false
-        if (data.items) for (const i in data.items) this.upsertItem(data.items[i])
+        if (data.items) for (const i in data.items) await this.upsertItem(data.items[i])
+        if (data.users) this.users = data.users.map(user => this.client.users.upsertUser(user))
         return this
     }
 
@@ -111,7 +129,7 @@ export class DirectThread extends Entity {
      *
      * @param data Thread item data.
      * 
-     * @returns {DirectThreadItem}
+     * @returns {DirectThreadItem | undefined}
      */
     public upsertItem (data: DirectThreadItemData): DirectThreadItem | undefined {
         if (!data.item_id) return

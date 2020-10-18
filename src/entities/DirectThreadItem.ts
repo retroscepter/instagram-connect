@@ -1,5 +1,7 @@
 
 import { Entity } from './Entity'
+
+import { User } from './User'
 import { DirectThread } from './DirectThread'
 
 export type DirectThreadItemData = {
@@ -13,7 +15,9 @@ export type DirectThreadItemData = {
     story_share?: any
     felix_share?: any
     visual_media?: any
+    animated_media?: any
     voice_media?: any
+    action_log?: any
     client_context: number
     show_forward_attribution: boolean
     is_shh_mode: boolean
@@ -23,7 +27,7 @@ export class DirectThreadItem extends Entity {
     public thread: DirectThread
 
     public id: string = ''
-    public userId: string = ''
+    public author?: User
     public timestamp: number = Date.now()
     public type: string = ''
     public text?: string
@@ -55,7 +59,7 @@ export class DirectThreadItem extends Entity {
      */
     public update (data: DirectThreadItemData): DirectThreadItem {
         if (data.item_id) this.id = BigInt(data.item_id).toString()
-        if (data.user_id) this.userId = BigInt(data.user_id).toString()
+        if (data.user_id) this.author = this.thread.users.find(user => user.id === BigInt(data.user_id).toString())
         if (data.timestamp) this.timestamp = data.timestamp
         if (data.item_type) this.type = data.item_type
         if (data.text) this.text = data.text

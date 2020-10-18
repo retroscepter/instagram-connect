@@ -11,6 +11,7 @@ import { QEManager } from './managers/QEManager'
 import { AccountManager } from './managers/AccountManager'
 import { ChallengeManager } from './managers/ChallengeManager'
 import { DirectManager } from './managers/DirectManager'
+import { UserManager } from './managers/UserManager'
 
 import { Challenge } from './entities/Challenge'
 import { DirectThread } from './entities/DirectThread'
@@ -47,6 +48,7 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
     public account = new AccountManager(this)
     public challenge = new ChallengeManager(this)
     public direct = new DirectManager(this)
+    public users = new UserManager(this)
 
     public options: ClientOptions
 

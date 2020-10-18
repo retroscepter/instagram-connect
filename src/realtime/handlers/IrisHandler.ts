@@ -1,9 +1,6 @@
 
 import { Handler } from './Handler'
 
-import { DirectThreadData } from '../../entities/DirectThread'
-import { DirectThreadItemData } from '../../entities/DirectThreadItem'
-
 export type IrisEventData = {
     event: string
     data: IrisEventOperationData[]
@@ -69,12 +66,12 @@ export class IrisHandler extends Handler {
 
         if (path.startsWith('/direct_v2/threads')) {
             if (!path.includes('activity_indicator_id')) {
-                this.upsertThreadItem(operation, true)
+                await this.upsertThreadItem(operation, true)
             }
         }
 
         if (path.startsWith('/direct_v2/inbox/threads')) {
-            this.upsertThread(operation, true)
+            await this.upsertThread(operation, true)
         }
     }
 
@@ -92,12 +89,12 @@ export class IrisHandler extends Handler {
 
         if (path.startsWith('/direct_v2/threads')) {
             if (!path.endsWith('has_seen')) {
-                this.upsertThreadItem(operation, false)
+                await this.upsertThreadItem(operation, false)
             }
         }
 
         if (path.startsWith('/direct_v2/inbox/threads')) {
-            this.upsertThread(operation, false)
+            await this.upsertThread(operation, false)
         }
     }
 
@@ -114,7 +111,7 @@ export class IrisHandler extends Handler {
         const path = operation.path
         
         if (path.startsWith('/direct_v2')) {
-            this.removeThreadItem(operation)
+            await this.removeThreadItem(operation)
         }
     }
 
@@ -139,10 +136,10 @@ export class IrisHandler extends Handler {
      * @param operation Operation data
      * @param create Whether thread was created or updated
      * 
-     * @return {void}
+     * @return {Promise<void>}
      */
-    private upsertThread (operation: IrisEventOperationData, create: boolean): void {
-        const thread = this.realtime.client.direct.upsertThread(operation.value)
+    private async upsertThread (operation: IrisEventOperationData, create: boolean): Promise<void> {
+        const thread = await this.realtime.client.direct.upsertThread(operation.value)
         this.realtime.client.emit(create ? 'threadCreate' : 'threadUpdate', thread)
     }
 
@@ -154,11 +151,11 @@ export class IrisHandler extends Handler {
      * @param operation Operation data
      * @param create Whether thread item was created or updated
      * 
-     * @returns {void}
+     * @returns {Promise<void>}
      */
-    private upsertThreadItem (operation: IrisEventOperationData, create: boolean): void {
+    private async upsertThreadItem (operation: IrisEventOperationData, create: boolean): Promise<void> {
         const threadId = operation.path.split('/')[3]
-        const item = this.realtime.client.direct.upsertThreadItem(threadId, operation.value)
+        const item = await this.realtime.client.direct.upsertThreadItem(threadId, operation.value)
         if (item) this.realtime.client.emit(create ? 'threadItemCreate' : 'threadItemUpdate', item)
     }
 
@@ -169,13 +166,13 @@ export class IrisHandler extends Handler {
      * 
      * @param operation Operation data
      * 
-     * @returns {void}
+     * @returns {Promise<void>}
      */
-    private removeThreadItem (operation: IrisEventOperationData): void {
+    private async removeThreadItem (operation: IrisEventOperationData): Promise<void> {
         const split = operation.path.split('/')
         const threadId = split[3]
         const itemId = split[5]
-        this.realtime.client.direct.removeThreadItem(threadId, itemId)
+        await this.realtime.client.direct.removeThreadItem(threadId, itemId)
         this.realtime.client.emit('threadItemRemove', threadId, itemId)
     }
 }

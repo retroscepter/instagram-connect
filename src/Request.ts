@@ -18,7 +18,7 @@ export type SignedFormBody = {
     signed_body: string
 }
 
-export type FormData = Record<string, unknown>
+export type FormData = Record<string, string | number | boolean | null | undefined>
 
 export type Headers = Record<string, string | string[] | undefined>
 
@@ -51,6 +51,7 @@ export class Request {
     public async send<T = unknown> (options: RequestOptions): Promise<Response<T>> {
         const headers = { ...this.headers, ...(options.headers || {}) }
         const data = { ...this.data, ...(options.data || {}) }
+        const searchParams = options.method === 'POST' ? undefined : data
         const form = options.method === 'POST' ? this.signData(data) : undefined
 
         const requestOptions: Options = {
@@ -58,6 +59,7 @@ export class Request {
             method: options.method || 'GET',
             responseType: 'json',
             headers,
+            searchParams,
             form
         }
 
