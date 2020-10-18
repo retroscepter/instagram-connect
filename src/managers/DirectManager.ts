@@ -64,7 +64,7 @@ export class DirectManager extends Manager {
 
         for (const t in response.body.inbox.threads) {
             const threadData = response.body.inbox.threads[t]
-            const isNewThread = this.threads.has(threadData.thread_id)
+            const isNewThread = !this.threads.has(threadData.thread_id)
             this.client.emit(isNewThread ? 'threadCreate' : 'threadUpdate', this.upsertThread(threadData))
         }
 
