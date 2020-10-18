@@ -9,7 +9,8 @@
     "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "build": "npx tsc -p tsconfig.json",
-    "build:watch": "npx tsc -w -p tsconfig.json"
+    "build:watch": "npx tsc -w -p tsconfig.json",
+    "build:publish": "npm run build && npm publish"
   },
   "author": "Braden Lamb",
   "license": "UNLICENSED",

@@ -83,7 +83,5 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
         }
 
         await this.realtime.connect()
-
-        this.emit('ready')
     }
 }

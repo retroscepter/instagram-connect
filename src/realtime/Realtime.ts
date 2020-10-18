@@ -89,6 +89,8 @@ export class Realtime extends MqttotClient {
             `1/graphqlsubscriptions/17846944882223835/${JSON.stringify({ input_data: { user_id: this.client.state.userId } })}`,
             `1/graphqlsubscriptions/17867973967082385/${JSON.stringify({ input_data: { user_id: this.client.state.userId } })}`
         ])
+
+        this.client.emit('ready')
     }
 
     /**
