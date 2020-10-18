@@ -139,7 +139,8 @@ export class IrisHandler extends Handler {
      * @return {Promise<void>}
      */
     private async upsertThread (operation: IrisEventOperationData, create: boolean): Promise<void> {
-        await this.realtime.client.direct.upsertThread(operation.value)
+        const thread = await this.realtime.client.direct.upsertThread(operation.value)
+        this.realtime.client.emit(create ? 'threadCreate' : 'threadUpdate', thread)
     }
 
     /**
@@ -154,7 +155,8 @@ export class IrisHandler extends Handler {
      */
     private async upsertThreadItem (operation: IrisEventOperationData, create: boolean): Promise<void> {
         const threadId = operation.path.split('/')[3]
-        await this.realtime.client.direct.upsertThreadItem(threadId, operation.value)
+        const item = await this.realtime.client.direct.upsertThreadItem(threadId, operation.value)
+        if (item) this.realtime.client.emit(create ? 'threadItemCreate' : 'threadItemUpdate', item)
     }
 
     /**
@@ -171,5 +173,6 @@ export class IrisHandler extends Handler {
         const threadId = split[3]
         const itemId = split[5]
         await this.realtime.client.direct.removeThreadItem(threadId, itemId)
+        this.realtime.client.emit('threadItemRemove', threadId, itemId)
     }
 }

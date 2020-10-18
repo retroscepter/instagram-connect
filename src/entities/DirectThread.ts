@@ -130,7 +130,7 @@ export class DirectThread extends Entity {
         if (data.mentions_muted) this.mentionsMuted = data.mentions_muted
         if (data.approval_required_for_new_members) this.approvalRequired = data.approval_required_for_new_members
         if (data.read_state) this.seen = data.read_state === 1 ? true : false
-        if (data.items) for (const i in data.items) this.upsertItem(data.items[i])
+        if (data.items) for (const i in data.items) this.upsertItem({ ...data.items[i], thread_id: this.id })
         if (data.users) this.users = data.users.map(user => this.client.users.upsertUser(user))
         return this
     }
@@ -149,11 +149,9 @@ export class DirectThread extends Entity {
         const id = BigInt(data.item_id).toString()
         const item = this.items.get(id)
         if (item) {
-            this.client.emit('threadItemUpdate', item)
             return item.update(data)
         } else {
             const newItem = new DirectThreadItem(this.client, this, data)
-            this.client.emit('threadItemCreate', newItem)
             this.items.set(id, newItem)
             return newItem
         }
@@ -171,6 +169,5 @@ export class DirectThread extends Entity {
     public removeItem (id: number | string): void {
         const itemId = typeof id === 'string' ? id : BigInt(id).toString()
         this.items.del(itemId)
-        this.client.emit('threadItemRemove', this.id, itemId)
     }
 }

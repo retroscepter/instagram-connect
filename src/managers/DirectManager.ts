@@ -88,7 +88,10 @@ export class DirectManager extends Manager {
 
         for (const t in response.inbox.threads) {
             const threadData = response.inbox.threads[t]
+            const isNewThread = !this.threads.has(threadData.thread_id)
+            const event = isNewThread ? 'threadCreate' : 'threadUpdate'
             const thread = this.upsertThread(threadData)
+            this.client.emit(event, thread)
             threads.push(thread)
         }
 
@@ -145,11 +148,9 @@ export class DirectManager extends Manager {
         const id = data.thread_id
         const thread = this.threads.get(id)
         if (thread) {
-            this.client.emit('threadUpdate', thread)
             return thread.update(data)
         } else {
             const newThread = new DirectThread(this.client, data)
-            this.client.emit('threadCreate', newThread)
             this.threads.set(id, newThread)
             return newThread
         }
@@ -178,9 +179,7 @@ export class DirectManager extends Manager {
                 // @ts-expect-error this is intential as the catch block will handle this being undefined
                 return thread.upsertItem(data)
             } catch {
-                const newThreadItem = new DirectThreadItem(this.client, undefined, data)
-                this.client.emit('threadItemCreate', newThreadItem)
-                return newThreadItem
+                return new DirectThreadItem(this.client, undefined, data)
             }
         } else {
             return thread.upsertItem(data)
