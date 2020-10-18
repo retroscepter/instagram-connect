@@ -6,12 +6,35 @@ import { Client } from './Client'
 
 import { Challenge } from './entities/Challenge'
 
-import { DeviceInfo } from './types/DeviceInfo'
-import { ExportedState } from './types/ExportedState'
-
 import * as Constants from './constants'
 import { BUILDS } from './constants/builds'
 import { DEVICES } from './constants/devices'
+
+export type DeviceInfo = {
+    androidVersion: string
+    androidRelease: string
+    manufacturer: string
+    model: string
+}
+
+export type ExportedState = {
+    deviceId?: string
+    deviceName?: string
+    appBuild?: string
+    phoneId?: string
+    uuid?: string
+    adid?: string
+
+    igWWWClaim?: string
+    authorization?: string
+    passwordEncryptionKeyId?: string
+    passwordEncryptionPublicKey?: string
+
+    irisSequenceId?: number
+    irisSnapshotTimestamp?: number
+
+    cookies?: string
+}
 
 /**
  * Manages authentication and session state.

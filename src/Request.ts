@@ -4,22 +4,23 @@ import { createHmac } from 'crypto'
 
 import { Client } from './Client'
 
-import { FormData } from './types/FormData'
-import { Headers } from './types/Headers'
-
 import * as Constants from './constants'
 
-type RequestOptions = {
+export type RequestOptions = {
     url: string
     method?: 'GET' | 'POST'
     headers?: Headers
     data?: FormData
 }
 
-type SignedFormBody = {
+export type SignedFormBody = {
     ig_sig_key_version: string
     signed_body: string
 }
+
+export type FormData = Record<string, unknown>
+
+export type Headers = Record<string, string | string[] | undefined>
 
 /**
  * Manages requests and authorization for requests.

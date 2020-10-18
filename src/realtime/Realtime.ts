@@ -5,7 +5,6 @@ import { MqttotClient } from './MqttotClient'
 import { Commands } from './Commands'
 
 import * as Constants from '../constants'
-import * as RealtimeConstants from '../constants/realtime'
 import * as Topics from '../constants/topics'
 
 import { Parser } from './parsers/Parser'
@@ -46,7 +45,7 @@ export class Realtime extends MqttotClient {
      * @param client Client managing the instance
      */
     constructor (client: Client) {
-        super({ url: RealtimeConstants.REALTIME_URL, autoReconnect: true })
+        super({ url: Constants.REALTIME_URL, autoReconnect: true })
         this.client = client
     }
 
@@ -171,14 +170,14 @@ export class Realtime extends MqttotClient {
                     Topics.GRAPHQL_ID
                 ].map(t => parseInt(t)),
                 clientMqttSessionId: mqttSessionId,
-                clientCapabilities: RealtimeConstants.CAPABILITIES,
-                endpointCapabilities: RealtimeConstants.ENDPOINT_CAPABILITIES,
-                networkType: RealtimeConstants.NETWORK_TYPE,
-                networkSubtype: RealtimeConstants.NETWORK_SUBTYPE,
-                publishFormat: RealtimeConstants.PUBLISH_FORMAT,
-                clientType: RealtimeConstants.CLIENT_TYPE,
+                clientCapabilities: Constants.CAPABILITIES,
+                endpointCapabilities: Constants.ENDPOINT_CAPABILITIES,
+                networkType: Constants.NETWORK_TYPE,
+                networkSubtype: Constants.NETWORK_SUBTYPE,
+                publishFormat: Constants.PUBLISH_FORMAT,
+                clientType: Constants.CLIENT_TYPE,
                 appId: BigInt(Constants.FACEBOOK_ANALYTICS_APPLICATION_ID),
-                clientStack: RealtimeConstants.CLIENT_STACK,
+                clientStack: Constants.CLIENT_STACK,
                 noAutomaticForeground: true,
                 isInitiallyForeground: false
             },

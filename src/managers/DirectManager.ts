@@ -6,7 +6,30 @@ import { Manager } from './Manager'
 import { DirectThread, DirectThreadData } from '../entities/DirectThread'
 import { DirectThreadItem, DirectThreadItemData } from '../entities/DirectThreadItem'
 
-import { DirectInboxData } from '../responses/Direct'
+export type DirectInboxData = {
+    inbox: DirectInboxInboxData
+    seq_id: number
+    snapshot_at_ms: number
+    pending_requests_total: number
+    has_pending_top_requests: boolean
+    status: 'ok' | 'failed'
+}
+
+export type DirectInboxInboxData = {
+    threads: DirectThreadData[]
+    has_older: boolean
+    unseen_count: number
+    unseen_count_ts: number
+    oldest_cursor: string
+    prev_cursor: DirectInboxCursorData
+    next_cursor: DirectInboxCursorData
+    blended_inbox_enabled: boolean
+}
+
+export type DirectInboxCursorData = {
+    cursor_timestamp_seconds: number
+    cursor_thread_v2_id: number
+}
 
 /**
  * Manages direct threads and messages.
