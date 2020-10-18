@@ -1,9 +1,14 @@
 
 import { Handler } from './Handler'
 
-export class SkywalkerHandler extends Handler {
+/**
+ * Region hint message handler
+ *
+ * @extends {Handler}
+ */
+export class RegionHintHandler extends Handler {
     /**
-     * Handle a GraphQL message.
+     * Handle a region hint message.
      *
      * @public
      *
@@ -12,6 +17,6 @@ export class SkywalkerHandler extends Handler {
      * @returns {Promise<T>}
      */
     public async handle (data: any): Promise<void> {
-
+        return void 0
     }
 }

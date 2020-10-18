@@ -23,7 +23,7 @@ export class Handler {
      *
      * @returns {Promise<T>}
      */
-    public async handle (data: Buffer): Promise<void> {
+    public async handle (data: any): Promise<void> {
         throw new Error('handle method must be overidden')
     }
 }

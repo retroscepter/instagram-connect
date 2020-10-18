@@ -9,9 +9,6 @@ import { DirectInboxData, DirectInboxInboxData } from '../responses/Direct'
  * @extends {Manager}
  */
 export class DirectManager extends Manager {
-    public sequenceId?: number
-    public snapshotTimestamp?: number
-
     /**
      * Get direct inbox threads.
      * 
@@ -32,8 +29,8 @@ export class DirectManager extends Manager {
             data
         })
 
-        this.sequenceId = response.body.seq_id
-        this.snapshotTimestamp = response.body.snapshot_at_ms
+        this.client.state.irisSequenceId = response.body.seq_id
+        this.client.state.irisSnapshotTimestamp = response.body.snapshot_at_ms
 
         return response.body
     }

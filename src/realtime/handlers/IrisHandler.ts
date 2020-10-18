@@ -16,7 +16,11 @@ export class IrisHandler extends Handler {
      *
      * @returns {Promise<T>}
      */
-    public async handle (data: Buffer): Promise<void> {
-
+    public async handle (data: any): Promise<void> {
+        for (const e in data) {
+            const event = data[e]
+            this.realtime.client.state.irisSequenceId = event.seq_id
+            this.realtime.client.state.irisSnapshotTimestamp = Date.now()
+        }
     }
 }

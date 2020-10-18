@@ -34,6 +34,9 @@ export class State {
     public passwordEncryptionKeyId?: string
     public passwordEncryptionPublicKey?: string
 
+    public irisSequenceId?: number
+    public irisSnapshotTimestamp?: number
+
     public challenge?: Challenge
 
     /**
@@ -223,6 +226,8 @@ export class State {
             authorization: this.authorization,
             passwordEncryptionKeyId: this.passwordEncryptionKeyId,
             passwordEncryptionPublicKey: this.passwordEncryptionPublicKey,
+            irisSequenceId: this.irisSequenceId,
+            irisSnapshotTimestamp: this.irisSnapshotTimestamp,
             cookies: await this.serializeCookies()
         }
     }
@@ -247,6 +252,8 @@ export class State {
         this.authorization = state.authorization
         this.passwordEncryptionKeyId = state.passwordEncryptionKeyId
         this.passwordEncryptionPublicKey = state.passwordEncryptionPublicKey
+        this.irisSequenceId = state.irisSequenceId
+        this.irisSnapshotTimestamp = state.irisSnapshotTimestamp
         if (state.cookies) await this.deserializeCookies(state.cookies)
     }
 

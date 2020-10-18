@@ -12,5 +12,8 @@ export type ExportedState = {
     passwordEncryptionKeyId?: string
     passwordEncryptionPublicKey?: string
 
+    irisSequenceId?: number
+    irisSnapshotTimestamp?: number
+
     cookies?: string
 }

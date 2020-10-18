@@ -9,11 +9,13 @@ import * as RealtimeConstants from '../constants/realtime'
 import * as Topics from '../constants/topics'
 
 import { Parser } from './parsers/Parser'
+import { RegionHintParser } from './parsers/RegionHintParser'
 import { SkywalkerParser } from './parsers/SkywalkerParser'
 import { GraphQLParser } from './parsers/GraphQLParser'
 import { IrisParser } from './parsers/IrisParser'
 
 import { Handler } from './handlers/Handler'
+import { RegionHintHandler } from './handlers/RegionHintHandler'
 import { SkywalkerHandler } from './handlers/SkywalkerHandler'
 import { GraphQLHandler } from './handlers/GraphQLHandler'
 import { IrisHandler } from './handlers/IrisHandler'
@@ -27,15 +29,17 @@ export class Realtime extends MqttotClient {
     public commands = new Commands(this)
 
     private parsers: Record<string, Parser> = {
-        [Topics.PUBSUB_ID]: new SkywalkerParser(),
+        [Topics.REGION_HINT_ID]: new RegionHintParser(),
         [Topics.REALTIME_SUB_ID]: new GraphQLParser(),
-        [Topics.MESSAGE_SYNC_ID]: new IrisParser()
+        [Topics.MESSAGE_SYNC_ID]: new IrisParser(),
+        [Topics.PUBSUB_ID]: new SkywalkerParser()
     }
 
     private handlers: Record<string, Handler> = {
-        [Topics.PUBSUB_ID]: new SkywalkerHandler(this),
+        [Topics.REGION_HINT_ID]: new RegionHintHandler(this),
         [Topics.REALTIME_SUB_ID]: new GraphQLHandler(this),
-        [Topics.MESSAGE_SYNC_ID]: new IrisHandler(this)
+        [Topics.MESSAGE_SYNC_ID]: new IrisHandler(this),
+        [Topics.PUBSUB_ID]: new SkywalkerHandler(this)
     }
 
     /**
@@ -71,15 +75,15 @@ export class Realtime extends MqttotClient {
      */
     private async onConnect (): Promise<void> {
         if (
-            !this.client.direct.sequenceId ||
-            !this.client.direct.snapshotTimestamp
+            !this.client.state.irisSequenceId ||
+            !this.client.state.irisSnapshotTimestamp
         ) {
             await this.client.direct.getInbox()
         }
 
         await this.commands.irisSubscribe({
-            sequenceId: this.client.direct.sequenceId || 1,
-            snapshotTimestamp: this.client.direct.snapshotTimestamp || 1
+            sequenceId: this.client.state.irisSequenceId || 1,
+            snapshotTimestamp: this.client.state.irisSnapshotTimestamp || 1
         })
 
         await this.commands.skywalkerSubscribe([

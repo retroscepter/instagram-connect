@@ -17,7 +17,7 @@ export class GraphQLParser extends Parser<any> {
      * 
      * @returns {Promise<any>}
      */
-    public async parse (payload: Buffer) {
+    public async parse (payload: Buffer): Promise<any> {
         const unzipped = await unzip(payload)
         const thriftMessage = thriftRead(unzipped)
         const event = thriftMessage[0].value
