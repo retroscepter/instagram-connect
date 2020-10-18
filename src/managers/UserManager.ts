@@ -39,6 +39,16 @@ export type UserSearchResultData = Partial<UserData> & {
 export class UserManager extends Manager {
     users = new LRU<string, User>()
 
+    /**
+     * Search for users by username and return raw response data.
+     * 
+     * @public
+     * 
+     * @param username Username
+     * @param limit Result limit
+     * 
+     * @returns {Promise<UserSearchResultData[]>}
+     */
     public async searchRaw (username: string, limit: number = 30): Promise<UserSearchResultData[]> {
         const data = {
             q: username,
@@ -53,17 +63,45 @@ export class UserManager extends Manager {
         return body.users
     }
 
+    /**
+     * Search for users by username.
+     * 
+     * @public
+     * 
+     * @param username Username
+     * @param limit Result limit
+     * 
+     * @returns {Promise<User>}
+     */
     public async search (username: string, limit: number = 30): Promise<User[]> {
         const users = await this.searchRaw(username, limit)
         return users.map(user => new User(this.client, user))
     }
 
+    /**
+     * Get user ID by username.
+     * 
+     * @public
+     * 
+     * @param username Username
+     * 
+     * @returns {Promise<string | undefined>}
+     */
     public async getIdByUsername (username: string): Promise<string | undefined> {
         const users = await this.search(username)
         const user = users.find(user => user.username === username)
         return user ? user.id : undefined
     }
 
+    /**
+     * Get user info by ID and return raw response data.
+     * 
+     * @public
+     * 
+     * @param id User ID
+     * 
+     * @returns {Promise<UserData | undefined>}
+     */
     public async getUserRaw (id: string | number): Promise<UserData | undefined> {
         const { body } = await this.client.request.send<UserInfoData>({
             url: `api/v1/users/${id}/info/`
@@ -72,6 +110,15 @@ export class UserManager extends Manager {
         return body.user
     }
 
+    /**
+     * Get user by ID.
+     * 
+     * @public
+     * 
+     * @param id User ID
+     * 
+     * @returns {Promise<User | undefined>}
+     */
     public async getUser (id: string | number): Promise<User | undefined> {
         const user = await this.getUserRaw(id)
         return user ? new User(this.client, user) : undefined
