@@ -63,7 +63,9 @@ export class DirectManager extends Manager {
         this.client.state.irisSnapshotTimestamp = response.body.snapshot_at_ms
 
         for (const t in response.body.inbox.threads) {
-            this.upsertThread(response.body.inbox.threads[t])
+            const threadData = response.body.inbox.threads[t]
+            const isNewThread = this.threads.has(threadData.thread_id)
+            this.client.emit(isNewThread ? 'threadCreate' : 'threadUpdate', this.upsertThread(threadData))
         }
 
         return response.body
