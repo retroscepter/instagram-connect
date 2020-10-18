@@ -55,7 +55,16 @@ export class IrisHandler extends Handler {
         }
     }
 
-    private async handleAdd (operation: IrisEventOperationData) {
+    /**
+     * Handle message add operation.
+     * 
+     * @private
+     * 
+     * @param operation Operation data
+     * 
+     * @returns {Promise<void>} 
+     */
+    private async handleAdd (operation: IrisEventOperationData): Promise<void> {
         const path = operation.path
 
         if (path.startsWith('/direct_v2/threads')) {
@@ -69,7 +78,16 @@ export class IrisHandler extends Handler {
         }
     }
 
-    private async handleReplace (operation: IrisEventOperationData) {
+    /**
+     * Handle message replace operation.
+     * 
+     * @private
+     * 
+     * @param operation Operation data
+     * 
+     * @returns {Promise<void>} 
+     */
+    private async handleReplace (operation: IrisEventOperationData): Promise<void> {
         const path = operation.path
 
         if (path.startsWith('/direct_v2/threads')) {
@@ -83,7 +101,16 @@ export class IrisHandler extends Handler {
         }
     }
 
-    private async handleRemove (operation: IrisEventOperationData) {
+    /**
+     * Handle message remove operation.
+     * 
+     * @private
+     * 
+     * @param operation Operation data
+     * 
+     * @returns {Promise<void>} 
+     */
+    private async handleRemove (operation: IrisEventOperationData): Promise<void> {
         const path = operation.path
         
         if (path.startsWith('/direct_v2')) {
@@ -91,7 +118,16 @@ export class IrisHandler extends Handler {
         }
     }
 
-    private async handleNotify (operation: IrisEventOperationData) {
+    /**
+     * Handle message notify operation.
+     * 
+     * @private
+     * 
+     * @param operation Operation data
+     * 
+     * @returns {Promise<void>} 
+     */
+    private async handleNotify (operation: IrisEventOperationData): Promise<void> {
 
     }
 
