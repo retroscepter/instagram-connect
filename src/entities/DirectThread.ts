@@ -100,9 +100,9 @@ export class DirectThread extends Entity {
      * 
      * @param data Thread data
      * 
-     * @returns {Promise<DirectThread>}
+     * @returns {DirectThread}
      */
-    public async update (data: DirectThreadData): Promise<DirectThread> {
+    public update (data: DirectThreadData): DirectThread {
         if (data.thread_id) this.id = data.thread_id
         if (data.last_activity_at) this.lastActivityTimestamp = data.last_activity_at
         if (data.muted) this.muted = data.muted
@@ -117,7 +117,7 @@ export class DirectThread extends Entity {
         if (data.mentions_muted) this.mentionsMuted = data.mentions_muted
         if (data.approval_required_for_new_members) this.approvalRequired = data.approval_required_for_new_members
         if (data.read_state) this.seen = data.read_state === 1 ? true : false
-        if (data.items) for (const i in data.items) await this.upsertItem(data.items[i])
+        if (data.items) for (const i in data.items) this.upsertItem(data.items[i])
         if (data.users) this.users = data.users.map(user => this.client.users.upsertUser(user))
         return this
     }
