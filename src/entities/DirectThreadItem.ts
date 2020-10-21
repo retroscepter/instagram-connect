@@ -5,7 +5,7 @@ import { Entity } from './Entity'
 import { User } from './User'
 import { DirectThread } from './DirectThread'
 import { DirectMedia, DirectMediaData } from './DirectMedia'
-import { DirectMediaShare } from './DirectMediaShare'
+import { DirectMediaShare, DirectMediaShareData } from './DirectMediaShare'
 import { DirectStoryShare } from './DirectStoryShare'
 import { DirectIGTVShare } from './DirectIGTVShare'
 import { DirectStoryMedia } from './DirectStoryMedia'
@@ -33,7 +33,7 @@ export type DirectThreadItemData = {
     thread_id: string
     text?: string
     media?: DirectMediaData
-    media_share?: any
+    media_share?: DirectMediaShareData
     story_share?: any
     felix_share?: any
     visual_media?: any
@@ -48,7 +48,7 @@ export type DirectThreadItemData = {
 export class DirectThreadItem extends Entity {
     public thread?: DirectThread
 
-    public id: string = ''
+    public id = ''
     public user?: User
     public userId?: string
     public threadId?: string
@@ -56,7 +56,7 @@ export class DirectThreadItem extends Entity {
     public type: DirectThreadItemType = 'text'
     public text?: string
     public media?: DirectMedia
-    public mediaShare?: any
+    public mediaShare?: DirectMediaShare
     public storyShare?: any
     public igtvShare?: any
     public storyMedia?: any
@@ -96,7 +96,7 @@ export class DirectThreadItem extends Entity {
         if (typeof data.item_type === 'string') this.type = data.item_type
         if (typeof data.text === 'string') this.text = data.text
         if (typeof data.media !== 'undefined') this.media = new DirectMedia(this, data.media)
-        if (typeof data.media_share !== 'undefined') this.mediaShare = data.media_share
+        if (typeof data.media_share !== 'undefined') this.mediaShare = new DirectMediaShare(this, data.media_share)
         if (typeof data.story_share !== 'undefined') this.storyShare = data.story_share
         if (typeof data.felix_share !== 'undefined') this.igtvShare = data.felix_share
         if (typeof data.visual_media !== 'undefined') this.storyMedia = data.visual_media

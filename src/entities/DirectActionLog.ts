@@ -24,7 +24,7 @@ export type DirectActionLogTextData = {
 export class DirectActionLog extends Entity {
     public item?: DirectThreadItem
 
-    public description: string = ''
+    public description = ''
     public bold: DirectActionLogBoldData[] = []
     public textAttributes: DirectActionLogTextData[] = []
 
@@ -49,8 +49,8 @@ export class DirectActionLog extends Entity {
      */
     public update (data: DirectActionLogData): DirectActionLog {
         if (typeof data.description === 'string') this.description = data.description
-        if (typeof data.bold !== 'undefined') this.bold = data.bold
-        if (typeof data.text_attributes !== 'undefined') this.textAttributes = data.text_attributes
+        if (data.bold) this.bold = data.bold
+        if (data.text_attributes) this.textAttributes = data.text_attributes
         return this
     }
 }

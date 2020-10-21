@@ -26,10 +26,10 @@ export type DirectMediaVideoData = MediaVideoData
 export class DirectMedia extends Entity {
     public item?: DirectThreadItem
 
-    public id: string = ''
+    public id = ''
     public type: 1 | 2 = 1
-    public width: number = 0
-    public height: number = 0
+    public width = 0
+    public height = 0
     public images?: DirectMediaImageData[]
     public videos?: DirectMediaVideoData[]
 
@@ -57,10 +57,10 @@ export class DirectMedia extends Entity {
         if (typeof data.media_type === 'number') this.type = data.media_type
         if (typeof data.original_width === 'number') this.width = data.original_width
         if (typeof data.original_height === 'number') this.height = data.original_height
-        if (typeof data.video_versions !== 'undefined') {
+        if (data.video_versions) {
             this.videos = data.video_versions.map(({ width, height, url, type, id }) => ({ width, height, url, type, id }))
         }
-        if (typeof data.image_versions2 !== 'undefined') {
+        if (data.image_versions2) {
             this.images = data.image_versions2.candidates.map(({ width, height, url }) => ({ width, height, url }))
         }
         return this

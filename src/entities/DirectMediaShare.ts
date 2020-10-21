@@ -2,6 +2,8 @@
 import { Media, MediaData } from './Media'
 import { DirectThreadItem } from './DirectThreadItem'
 
+export type DirectMediaShareData = MediaData
+
 /**
  * Direct media share.
  * 

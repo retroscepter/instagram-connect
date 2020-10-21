@@ -49,7 +49,7 @@ export class UserManager extends Manager {
      * 
      * @returns {Promise<UserSearchResponseData>}
      */
-    public async searchRaw (username: string, limit: number = 30): Promise<UserSearchResponseData> {
+    public async searchRaw (username: string, limit = 30): Promise<UserSearchResponseData> {
         const data = {
             q: username,
             count: limit
@@ -73,7 +73,7 @@ export class UserManager extends Manager {
      * 
      * @returns {Promise<User>}
      */
-    public async search (username: string, limit: number = 30): Promise<User[]> {
+    public async search (username: string, limit = 30): Promise<User[]> {
         const { users } = await this.searchRaw(username, limit)
         return users.map(user => new User(this.client, user))
     }

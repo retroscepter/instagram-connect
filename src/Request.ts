@@ -11,6 +11,7 @@ export type RequestOptions = {
     method?: 'GET' | 'POST'
     headers?: Headers
     data?: FormData
+    body?: Buffer
 }
 
 export type SignedFormBody = {
@@ -49,10 +50,11 @@ export class Request {
      * @param options Request options
      */
     public async send<T = unknown> (options: RequestOptions): Promise<Response<T>> {
+        const body = options.body || undefined
         const headers = { ...this.headers, ...(options.headers || {}) }
-        const data = { ...this.data, ...(options.data || {}) }
+        const data = body ? undefined : { ...this.data, ...(options.data || {}) }
         const searchParams = options.method === 'POST' ? undefined : data
-        const form = options.method === 'POST' ? this.signData(data) : undefined
+        const form = data && options.method === 'POST' ? this.signData(data) : undefined
 
         const requestOptions: Options = {
             url: options.url,
@@ -60,7 +62,8 @@ export class Request {
             responseType: 'json',
             headers,
             searchParams,
-            form
+            form,
+            body
         }
 
         try {

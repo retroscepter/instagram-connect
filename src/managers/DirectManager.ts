@@ -37,7 +37,7 @@ export type DirectThreadResponseData = {
 }
 
 /**
- * Manages direct threads and messages.
+ * Manages direct threads.
  *
  * @extends {Manager}
  */
@@ -53,7 +53,7 @@ export class DirectManager extends Manager {
      *
      * @returns {Promise<DirectInboxData>}
      */
-    public async getInboxRaw (limit: number = 20): Promise<DirectInboxResponseData> {
+    public async getInboxRaw (limit = 20): Promise<DirectInboxResponseData> {
         const data = {
             visual_message_return_type: 'unseen',
             thread_message_limit: 10,
@@ -78,7 +78,7 @@ export class DirectManager extends Manager {
      * 
      * @returns {Promise<DirectThread[]>}
      */
-    public async getInbox (limit: number = 20): Promise<DirectThread[]> {
+    public async getInbox (limit = 20): Promise<DirectThread[]> {
         const response = await this.getInboxRaw(limit)
 
         this.client.state.irisSequenceId = response.seq_id

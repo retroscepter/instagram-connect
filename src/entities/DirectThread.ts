@@ -66,21 +66,21 @@ export type DirectThreadLastSeenData = {
 }
 
 export class DirectThread extends Entity {
-    public id: string = ''
+    public id = ''
     public users: User[] = []
     public lastActivityTimestamp: number = Date.now()
-    public muted: boolean = false
-    public pinned: boolean = false
-    public named: boolean = false
-    public pending: boolean = false
-    public archived: boolean = false
-    public group: boolean = false
-    public type: string = ''
-    public title: string = ''
-    public videoCallMuted: boolean = false
-    public mentionsMuted: boolean = false
-    public approvalRequired: boolean = false
-    public seen: boolean = false
+    public muted = false
+    public pinned = false
+    public named = false
+    public pending = false
+    public archived = false
+    public group = false
+    public type = ''
+    public title = ''
+    public videoCallMuted = false
+    public mentionsMuted = false
+    public approvalRequired = false
+    public seen = false
 
     public items = new LRU<string, DirectThreadItem>({ max: 200 })
 

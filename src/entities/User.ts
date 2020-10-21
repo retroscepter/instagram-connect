@@ -108,14 +108,14 @@ export type UserFriendshipStatusData = {
  * @extends {Entity}
  */
 export class User extends Entity {
-    public id: string = ''
-    public username: string = ''
-    public name: string = ''
-    public isPrivate: boolean = false
+    public id = ''
+    public username = ''
+    public name = ''
+    public isPrivate = false
     public profilePicUrl?: string
     public profilePicId?: string
     public isVerified?: boolean = false
-    public anonymousProfilePic: boolean = false
+    public anonymousProfilePic = false
     public mutualFollowerCount?: number
     public isFollowing?: boolean
     public incomingFollowRequest?: boolean

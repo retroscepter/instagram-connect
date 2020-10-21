@@ -36,13 +36,13 @@ export type DirectAnimatedMediaUserData = {
 export class DirectAnimatedMedia extends Entity {
     public item?: DirectThreadItem
 
-    public id: string = ''
-    public isRandom: boolean = false
-    public isSticker: boolean = false
-    public url: string = ''
-    public width: number = 0
-    public height: number = 0
-    public size: number = 0
+    public id = ''
+    public isRandom = false
+    public isSticker = false
+    public url = ''
+    public width = 0
+    public height = 0
+    public size = 0
     public videoUrl?: string
     public videoSize?: number
     public webpUrl?: string
@@ -71,7 +71,7 @@ export class DirectAnimatedMedia extends Entity {
         if (typeof data.id === 'string') this.id = data.id
         if (typeof data.is_random === 'boolean') this.isRandom = data.is_random
         if (typeof data.is_sticker === 'boolean') this.isSticker = data.is_sticker
-        if (typeof data.images !== 'undefined') {
+        if (data.images) {
             if (typeof data.images.fixed_height !== 'undefined') {
                 this.url = data.images.fixed_height.url
                 this.width = data.images.fixed_height.width

@@ -41,13 +41,13 @@ export type DirectVoiceUserData = {
 export class DirectVoiceMedia extends Entity {
     public item?: DirectThreadItem
 
-    public id: string = ''
+    public id = ''
     public seenUserIds: string[] = []
-    public seenCount: number = 0
-    public src: string = ''
-    public duration: number = 0
+    public seenCount = 0
+    public src = ''
+    public duration = 0
     public waveform: number[] = []
-    public waveformFrequency: number = 0
+    public waveformFrequency = 0
 
     /**
      * @param item Item this voice media belongs to

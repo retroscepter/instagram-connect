@@ -112,26 +112,26 @@ export type MediaIntervalSharingFrictionData = {
  * @extends {Entity}
  */
 export class Media extends Entity {
-    public id: string = ''
+    public id = ''
     public type: 1 | 2 = 1
-    public width: number = 0
-    public height: number = 0
+    public width = 0
+    public height = 0
     public user?: User
-    public code: string = ''
-    public cacheKey: string = ''
-    public filterType: number = 0
-    public canReshare: boolean = true
-    public captionIsEdited: boolean = false
-    public commentLikingEnabled: boolean = true
-    public commentThreadingEnabled: boolean = true
-    public hasMoreComments: boolean = true
-    public maxVisiblePreviewComments: number = 0
-    public canViewMorePreviewComments: boolean = false
-    public commentCount: number = 0
-    public likeCount: number = 0
-    public hasLiked: boolean = false
+    public code = ''
+    public cacheKey = ''
+    public filterType = 0
+    public canReshare = true
+    public captionIsEdited = false
+    public commentLikingEnabled = true
+    public commentThreadingEnabled = true
+    public hasMoreComments = true
+    public maxVisiblePreviewComments = 0
+    public canViewMorePreviewComments = false
+    public commentCount = 0
+    public likeCount = 0
+    public hasLiked = false
     public topLikers: string[] = []
-    public photoOfYou: boolean = false
+    public photoOfYou = false
     public videoDashManifest?: string
     public codec?: string
     public qualityCount?: number
@@ -175,7 +175,7 @@ export class Media extends Entity {
         if (typeof data.comment_threading_enabled === 'boolean') this.commentThreadingEnabled = data.comment_threading_enabled
         if (typeof data.has_more_comments === 'boolean') this.hasMoreComments = data.has_more_comments
         if (typeof data.max_num_visible_preview_comments === 'number') this.maxVisiblePreviewComments = data.max_num_visible_preview_comments
-        if (typeof data.can_view_more_preview_comments === 'number') this.canViewMorePreviewComments = data.can_view_more_preview_comments!!
+        if (typeof data.can_view_more_preview_comments === 'number') this.canViewMorePreviewComments = data.can_view_more_preview_comments!
         if (typeof data.comment_count === 'number') this.commentCount = data.comment_count
         if (typeof data.like_count === 'number') this.likeCount = data.like_count
         if (typeof data.has_liked === 'boolean') this.hasLiked = data.has_liked
@@ -188,7 +188,7 @@ export class Media extends Entity {
         if (typeof data.number_of_qualities === 'number') this.qualityCount = data.number_of_qualities
         if (typeof data.has_audio === 'boolean') this.hasAudio = data.has_audio
         if (typeof data.video_duration === 'number') this.duration = data.video_duration
-        if (typeof data.caption !== 'undefined') {
+        if (data.caption) {
             const caption = data.caption
             this.caption = {
                 user: new User(this.client, caption.user),
