@@ -110,18 +110,18 @@ export type UserFriendshipStatusData = {
 export class User extends Entity {
     public id = ''
     public username = ''
-    public name = ''
-    public isPrivate = false
+    public name?: string
+    public private?: boolean
     public profilePicUrl?: string
     public profilePicId?: string
-    public isVerified?: boolean = false
-    public anonymousProfilePic = false
+    public verified?: boolean
+    public anonymousProfilePic?: boolean
     public mutualFollowerCount?: number
-    public isFollowing?: boolean
+    public following?: boolean
     public incomingFollowRequest?: boolean
     public outgoingFollowRequest?: boolean
-    public isBestie?: boolean
-    public isRestricted?: boolean
+    public bestie?: boolean
+    public restricted?: boolean
     public followerCount?: number
     public followingCount?: number
     public followingTagCount?: number
@@ -133,12 +133,12 @@ export class User extends Entity {
     public clipsCount?: number
     public arEffectCount?: number
     public usertagCount?: number
-    public isFavorite?: boolean
-    public isFavoriteStories?: boolean
-    public isFavoriteIGTV?: boolean
-    public isFavoriteHighlights?: boolean
+    public favorite?: boolean
+    public favoriteStories?: boolean
+    public favoriteIGTV?: boolean
+    public favoriteHighlights?: boolean
     public liveSubscriptionStatus?: string
-    public isInterestAccount?: boolean
+    public interestAccount?: boolean
     public chaining?: boolean
     public hdProfilePicUrl?: string
     public hdProfilePicWidth?: number
@@ -214,17 +214,17 @@ export class User extends Entity {
         if (typeof data.pk === 'number') this.id = BigInt(data.pk).toString()
         if (typeof data.username === 'string') this.username = data.username
         if (typeof data.full_name === 'string') this.name = data.full_name
-        if (typeof data.is_private === 'boolean') this.isPrivate = data.is_private
+        if (typeof data.is_private === 'boolean') this.private = data.is_private
         if (typeof data.profile_pic_url === 'string') this.profilePicUrl = data.profile_pic_url
         if (typeof data.profile_pic_id === 'string') this.profilePicId = data.profile_pic_id
-        if (typeof data.is_verified === 'boolean') this.isVerified = data.is_verified
+        if (typeof data.is_verified === 'boolean') this.verified = data.is_verified
         if (typeof data.has_anonymous_profile_picture === 'boolean') this.anonymousProfilePic = data.has_anonymous_profile_picture
         if (typeof data.mutual_followers_count === 'number') this.mutualFollowerCount = data.mutual_followers_count
         if (data.friendship_status) {
-            this.isFollowing = data.friendship_status.following
-            this.incomingFollowRequest = data.friendship_status.incoming_request
-            this.outgoingFollowRequest = data.friendship_status.outgoing_request
-            this.isRestricted = data.friendship_status.is_restricted
+            if (typeof data.friendship_status.following === 'boolean') this.following = data.friendship_status.following
+            if (typeof data.friendship_status.incoming_request === 'boolean') this.incomingFollowRequest = data.friendship_status.incoming_request
+            if (typeof data.friendship_status.outgoing_request === 'boolean') this.outgoingFollowRequest = data.friendship_status.outgoing_request
+            if (typeof data.friendship_status.is_restricted === 'boolean') this.restricted = data.friendship_status.is_restricted
         }
         if (typeof data.follower_count === 'number') this.followerCount = data.follower_count
         if (typeof data.following_count === 'number') this.followingCount = data.following_count
@@ -237,10 +237,10 @@ export class User extends Entity {
         if (typeof data.total_clips_count === 'number') this.clipsCount = data.total_clips_count
         if (typeof data.total_ar_effects === 'number') this.arEffectCount = data.total_ar_effects
         if (typeof data.usertags_count === 'number') this.usertagCount = data.usertags_count
-        if (typeof data.is_favorite === 'boolean') this.isFavorite = data.is_favorite
-        if (typeof data.is_favorite_for_stories === 'boolean') this.isFavoriteStories = data.is_favorite_for_stories
-        if (typeof data.is_favorite_for_igtv === 'boolean') this.isFavoriteIGTV = data.is_favorite_for_igtv
-        if (typeof data.is_favorite_for_highlights === 'boolean') this.isFavoriteHighlights = data.is_favorite_for_highlights
+        if (typeof data.is_favorite === 'boolean') this.favorite = data.is_favorite
+        if (typeof data.is_favorite_for_stories === 'boolean') this.favoriteStories = data.is_favorite_for_stories
+        if (typeof data.is_favorite_for_igtv === 'boolean') this.favoriteIGTV = data.is_favorite_for_igtv
+        if (typeof data.is_favorite_for_highlights === 'boolean') this.favoriteHighlights = data.is_favorite_for_highlights
         if (typeof data.live_subscription_status === 'string') this.liveSubscriptionStatus = data.live_subscription_status
         if (typeof data.has_chaining === 'boolean') this.chaining = data.has_chaining
         if (data.hd_profile_pic_url_info) {
