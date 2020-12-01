@@ -12,6 +12,7 @@ export type RequestOptions = {
     method?: 'GET' | 'POST'
     headers?: Headers
     data?: FormData
+    qs?: FormData
     body?: Buffer
 }
 
@@ -54,7 +55,7 @@ export class Request {
         const body = options.body || undefined
         const headers = { ...this.headers, ...(options.headers || {}) }
         const data = body ? undefined : { ...this.data, ...(options.data || {}) }
-        const searchParams = options.method === 'POST' ? undefined : data
+        const searchParams = options.method === 'POST' ? options.qs : { ...data, ...(options.qs || {}) }
         const form = data && options.method === 'POST' ? this.signData(data) : undefined
 
         const requestOptions: Options = {

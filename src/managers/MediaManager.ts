@@ -21,6 +21,11 @@ export type EditMediaResponseData = {
     status: 'ok' | 'fail'
 }
 
+export type DeleteMediaOptions = {
+    mediaId: string
+    mediaType?: 'PHOTO' | 'VIDEO' | 'CAROUSEL'
+}
+
 /**
  * Manages media.
  * 
@@ -101,5 +106,48 @@ export class MediaManager extends Manager {
     public async edit (options: EditMediaOptions): Promise<Media> {
         const body = await this.editRaw(options)
         return new Media(this.client, body.media)
+    }
+
+    /**
+     * Delete media and return raw response data.
+     * 
+     * @public
+     * 
+     * @param options Delete options
+     * 
+     * @returns  {Promise<unknown>}
+     */
+    public async deleteRaw (options: DeleteMediaOptions): Promise<unknown> {
+        const data = {
+            igtv_feed_preview: false,
+            media_id: options.mediaId
+        }
+
+        const qs = {
+            media_type: options.mediaType
+        }
+
+        const response = await this.client.request.send<unknown>({
+            url: `api/v1/media/${options.mediaId}/delete`,
+            method: 'POST',
+            data,
+            qs
+        })
+
+        return response.body
+    }
+
+    /**
+     * Delete media.
+     * 
+     * @public
+     * 
+     * @param options Delete options
+     * 
+     * @returns {Promise<boolean>}
+     */
+    public async delete (options: DeleteMediaOptions): Promise<boolean> {
+        await this.deleteRaw(options)
+        return true
     }
 }
