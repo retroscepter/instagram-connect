@@ -26,7 +26,7 @@ export class MediaManager extends Manager {
      * 
      * @returns {Promise<unknown>} 
      */
-    public async get (mediaId: string): Promise<unknown> {
+    public async getMedia (mediaId: string): Promise<unknown> {
         const data = {
             igtv_feed_preview: false,
             media_id: mediaId
@@ -36,10 +36,6 @@ export class MediaManager extends Manager {
             url: `api/v1/media/${mediaId}/info/`,
             data
         })
-
-        if (!response.body.items[0]) {
-            throw new Error('Media not found or unavailable')
-        }
 
         return new Media(this.client, response.body.items[0])
     }
