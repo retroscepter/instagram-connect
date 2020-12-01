@@ -96,7 +96,7 @@ export type MediaInternalCaptionData = {
     flags: number
     reportedAsSpam: boolean
     canShare: boolean
-    isCovered: boolean
+    covered: boolean
     media: Media
     privateReplyStatus: number
 }
@@ -161,7 +161,7 @@ export class Media extends Entity {
      * @returns {Media}
      */
     public update (data: MediaData): Media {
-        if (typeof data.id === 'number') this.id = BigInt(data.id).toString()
+        if (data.id) this.id = typeof data.id === 'string' ? data.id : BigInt(data.id).toString()
         if (typeof data.media_type === 'number') this.type = data.media_type
         if (typeof data.user !== 'undefined') this.user = new User(this.client, data.user)
         if (typeof data.code === 'string') this.code = data.code
@@ -201,7 +201,7 @@ export class Media extends Entity {
                 flags: caption.bit_flags,
                 reportedAsSpam: caption.did_report_as_spam,
                 canShare: caption.share_enabled,
-                isCovered: caption.is_covered,
+                covered: caption.is_covered,
                 media: this,
                 privateReplyStatus: caption.private_reply_status
             }
