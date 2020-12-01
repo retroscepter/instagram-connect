@@ -10,6 +10,7 @@ import { Realtime } from './realtime/Realtime'
 import { QEManager } from './managers/QEManager'
 import { AccountManager } from './managers/AccountManager'
 import { ChallengeManager } from './managers/ChallengeManager'
+import { TimelineManager } from './managers/TimelineManager'
 import { UploadManager } from './managers/UploadManager'
 import { DirectManager } from './managers/DirectManager'
 import { UserManager } from './managers/UserManager'
@@ -48,6 +49,7 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
     public qe = new QEManager(this)
     public account = new AccountManager(this)
     public challenge = new ChallengeManager(this)
+    public timeline = new TimelineManager(this)
     public upload = new UploadManager(this)
     public direct = new DirectManager(this)
     public users = new UserManager(this)
