@@ -3,6 +3,7 @@ import { Client } from '../Client'
 
 import { Entity } from './Entity'
 import { User, UserData } from './User'
+import { MediaManagerCommentOptions, MediaManagerEditOptions, MediaManagerLikeOptions, MediaManagerUnlikeOptions } from '../managers'
 
 export type MediaData = {
     taken_at: number
@@ -106,6 +107,22 @@ export type MediaIntervalSharingFrictionData = {
     bloksAppUrl: string | null
 }
 
+export type MediaEditOptions = MediaManagerEditOptions & {
+    mediaId: never
+}
+
+export type MediaLikeOptions = MediaManagerLikeOptions & {
+    mediaId: never
+}
+
+export type MediaUnlikeOptions = MediaManagerUnlikeOptions & {
+    mediaId: never
+}
+
+export type MediaCommentOptions = MediaManagerCommentOptions & {
+    mediaId: never
+}
+
 /**
  * Media.
  * 
@@ -113,7 +130,7 @@ export type MediaIntervalSharingFrictionData = {
  */
 export class Media extends Entity {
     public id = ''
-    public type: 1 | 2 = 1
+    public type: 1 | 2 | 8 = 1
     public width = 0
     public height = 0
     public user?: User
@@ -149,6 +166,90 @@ export class Media extends Entity {
     constructor (client: Client, data?: MediaData) {
         super(client)
         if (data) this.update(data)
+    }
+
+    /**
+     * Get media info and update state.
+     * 
+     * @public
+     * 
+     * @returns {Promise<Media>}
+     */
+    public async getMore (): Promise<Media> {
+        const { items } = await this.client.media.getRaw(this.id)
+        if (items[0]) return this.update(items[0])
+        return this
+    }
+
+    /**
+     * Edit media caption.
+     * 
+     * @public
+     * 
+     * @param options Edit options
+     * 
+     * @returns {Promise<Media>}
+     */
+    public async edit (options: MediaEditOptions): Promise<Media> {
+        const { media } = await this.client.media.editRaw({ ...options, mediaId: this.id, })
+        return this.update(media)
+    }
+
+    /**
+     * Delete media.
+     * 
+     * @public
+     * 
+     * @returns {Promise<void>}
+     */
+    public async delete (): Promise<void> {
+        const mediaType =
+            this.type === 1 && 'PHOTO' ||
+            this.type === 2 && 'VIDEO' ||
+            this.type === 8 && 'CAROUSEL' ||
+            'PHOTO'
+        await this.client.media.deleteRaw({ mediaId: this.id, mediaType })
+    }
+
+    /**
+     * Like media.
+     * 
+     * @public
+     * 
+     * @param options Like options
+     * 
+     * @returns {Promise<Media>}
+     */
+    public async like (options: MediaLikeOptions): Promise<Media> {
+        await this.client.media.likeRaw({ ...options, mediaId: this.id })
+        return this
+    }
+
+    /**
+     * Unike media.
+     * 
+     * @public
+     * 
+     * @param options Unlike options
+     * 
+     * @returns {Promise<Media>}
+     */
+    public async unlike (options: MediaUnlikeOptions): Promise<Media> {
+        await this.client.media.unlikeRaw({ ...options, mediaId: this.id })
+        return this
+    }
+
+    /**
+     * Comment on media.
+     * 
+     * @public
+     * 
+     * @param options Comment options
+     * 
+     * @returns {Promise<void>}
+     */
+    public async comment (options: MediaCommentOptions): Promise<void> {
+        await this.client.media.comment({ ...options, mediaId: this.id })
     }
 
     /**

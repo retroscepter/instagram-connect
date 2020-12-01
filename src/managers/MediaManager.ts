@@ -1,4 +1,6 @@
 
+import { Chance } from 'chance'
+
 import { Manager } from './Manager'
 
 import { Media, MediaData } from '../entities/Media'
@@ -11,57 +13,57 @@ export type MediaInfoResponseData = {
     status: 'ok' | 'fail'
 }
 
-export type EditMediaOptions = {
+export type MediaManagerEditOptions = {
     mediaId: string
     text: string
 }
 
-export type EditMediaResponseData = {
+export type MediaEditResponseData = {
     media: MediaData
     status: 'ok' | 'fail'
 }
 
-export type DeleteMediaOptions = {
+export type MediaManagerDeleteOptions = {
     mediaId: string
     mediaType?: 'PHOTO' | 'VIDEO' | 'CAROUSEL'
 }
 
-export type LikeMediaTimelineModule = {
+type LikeMediaTimelineModule = {
     name: 'feed_timeline' | 'feed_contextual_post' | 'newsfeed' | 'feed_contextual_newsfeed_multi_media_liked'
 }
 
-export type LikeMediaHashtagModule = {
+type LikeMediaHashtagModule = {
     name: 'feed_contextual_hashtag'
     hashtag: string
 }
 
-export type LikeMediaLocationModule = {
+type LikeMediaLocationModule = {
     name: 'feed_contextual_location',
     locationId: string | number
 }
 
-export type LikeMediaBaseProfileModule = {
+type LikeMediaBaseProfileModule = {
     username: string,
     userId: string
 }
 
-export type LikeMediaProfileModule = LikeMediaBaseProfileModule & {
+type LikeMediaProfileModule = LikeMediaBaseProfileModule & {
     name: 'profile'
 }
 
-export type LikeMediaViewProfileModule = LikeMediaBaseProfileModule & {
+type LikeMediaViewProfileModule = LikeMediaBaseProfileModule & {
     name: 'media_view_profile'
 }
 
-export type LikeVideoViewProfileModule = LikeMediaBaseProfileModule & {
+type LikeVideoViewProfileModule = LikeMediaBaseProfileModule & {
     name: 'video_view_profile'
 }
 
-export type LikePhotoViewProfileModule = LikeMediaBaseProfileModule & {
+type LikePhotoViewProfileModule = LikeMediaBaseProfileModule & {
     name: 'photo_view_profile'
 }
 
-export type LikeMediaModule =
+export type MediaLikeModule =
     LikeMediaTimelineModule |
     LikeMediaHashtagModule |
     LikeMediaLocationModule |
@@ -70,15 +72,22 @@ export type LikeMediaModule =
     LikeVideoViewProfileModule |
     LikePhotoViewProfileModule
 
-export type LikeMediaOptions = {
+export type MediaManagerLikeOptions = {
     mediaId: string
-    module?: LikeMediaModule
+    module?: MediaLikeModule
     doubleTap?: boolean
 }
 
-export type UnlikeMediaOptions = {
+export type MediaManagerUnlikeOptions = {
     mediaId: string
-    module?: LikeMediaModule
+    module?: MediaLikeModule
+}
+
+export type MediaManagerCommentOptions = {
+    mediaId: string
+    text: string
+    replyTo: string
+    module?: 'self_comments_v2'
 }
 
 /**
@@ -131,16 +140,16 @@ export class MediaManager extends Manager {
      * 
      * @param options Edit options
      * 
-     * @returns {Promise<EditMediaResponseData>}
+     * @returns {Promise<MediaEditResponseData>}
      */
-    public async editRaw (options: EditMediaOptions): Promise<EditMediaResponseData> {
+    public async editRaw (options: MediaManagerEditOptions): Promise<MediaEditResponseData> {
         const data = {
             igtv_feed_preview: false,
             media_id: options.mediaId,
             caption_text: options.text
         }
 
-        const response = await this.client.request.send<EditMediaResponseData>({
+        const response = await this.client.request.send<MediaEditResponseData>({
             url: `api/v1/media/${options.mediaId}/edit_media/`,
             method: 'POST',
             data
@@ -158,7 +167,7 @@ export class MediaManager extends Manager {
      * 
      * @returns {Promise<Media>}
      */
-    public async edit (options: EditMediaOptions): Promise<Media> {
+    public async edit (options: MediaManagerEditOptions): Promise<Media> {
         const body = await this.editRaw(options)
         return new Media(this.client, body.media)
     }
@@ -172,7 +181,7 @@ export class MediaManager extends Manager {
      * 
      * @returns  {Promise<unknown>}
      */
-    public async deleteRaw (options: DeleteMediaOptions): Promise<unknown> {
+    public async deleteRaw (options: MediaManagerDeleteOptions): Promise<unknown> {
         const data = {
             igtv_feed_preview: false,
             media_id: options.mediaId
@@ -201,7 +210,7 @@ export class MediaManager extends Manager {
      * 
      * @returns {Promise<boolean>}
      */
-    public async delete (options: DeleteMediaOptions): Promise<boolean> {
+    public async delete (options: MediaManagerDeleteOptions): Promise<boolean> {
         await this.deleteRaw(options)
         return true
     }
@@ -216,7 +225,7 @@ export class MediaManager extends Manager {
      * 
      * @returns {Promise<unknown>}
      */
-    private async likeAction (action: 'like' | 'unlike', options: LikeMediaOptions): Promise<unknown> {
+    private async likeAction (action: 'like' | 'unlike', options: MediaManagerLikeOptions): Promise<unknown> {
         const data = {
             media_id: options.mediaId,
             module_name: options.module?.name,
@@ -242,7 +251,7 @@ export class MediaManager extends Manager {
      * 
      * @returns {Promise<unknown>}
      */
-    public async likeRaw (options: LikeMediaOptions): Promise<unknown> {
+    public async likeRaw (options: MediaManagerLikeOptions): Promise<unknown> {
         return this.likeAction('like', options)
     }
 
@@ -255,7 +264,7 @@ export class MediaManager extends Manager {
      * 
      * @returns {Promise<boolean>}
      */
-    public async like (options: LikeMediaOptions): Promise<boolean> {
+    public async like (options: MediaManagerLikeOptions): Promise<boolean> {
         await this.likeRaw(options)
         return true
     }
@@ -269,7 +278,7 @@ export class MediaManager extends Manager {
      * 
      * @returns {Promise<unknown>}
      */
-    public async unlikeRaw (options: UnlikeMediaOptions): Promise<unknown> {
+    public async unlikeRaw (options: MediaManagerUnlikeOptions): Promise<unknown> {
         return this.likeAction('unlike', options)
     }
 
@@ -282,8 +291,47 @@ export class MediaManager extends Manager {
      * 
      * @returns {Promise<boolean>}
      */
-    public async unlike (options: UnlikeMediaOptions): Promise<boolean> {
+    public async unlike (options: MediaManagerUnlikeOptions): Promise<boolean> {
         await this.unlikeRaw(options)
         return true
+    }
+
+    /**
+     * Comment on media and return raw response data.
+     * 
+     * @public
+     * 
+     * @param options Comment options
+     * 
+     * @returns {Promise<unknown>}
+     */
+    public async commentRaw (options: MediaManagerCommentOptions): Promise<unknown> {
+        const data = {
+            idempotence_token: new Chance().guid(),
+            comment_text: options.text,
+            containermodule: options.module || 'self_comments_v2',
+            replied_to_comment_id: options.replyTo
+        }
+
+        const response = await this.client.request.send<unknown>({
+            url: `api/v1/media/${options.mediaId}/comment/`,
+            method: 'POST',
+            data
+        })
+
+        return response.body
+    }
+
+    /**
+     * Comment on media.
+     * 
+     * @public
+     * 
+     * @param options Comment options
+     * 
+     * @returns {Promise<void>}
+     */
+    public async comment (options: MediaManagerCommentOptions): Promise<void> {
+        await this.commentRaw(options)
     }
 }
