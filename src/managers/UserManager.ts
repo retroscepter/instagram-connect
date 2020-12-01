@@ -37,7 +37,12 @@ export type UserSearchResultData = Partial<UserData> & {
  * @extends {Manager}
  */
 export class UserManager extends Manager {
-    users = new LRU<string, User>()
+    /**
+     * User cache.
+     * 
+     * @type {LRU<string, User>}
+     */
+    public users = new LRU<string, User>()
 
     /**
      * Search for users by username and return raw response data.
