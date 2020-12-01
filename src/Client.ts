@@ -13,6 +13,7 @@ import { ChallengeManager } from './managers/ChallengeManager'
 import { TimelineManager } from './managers/TimelineManager'
 import { UploadManager } from './managers/UploadManager'
 import { DirectManager } from './managers/DirectManager'
+import { MediaManager } from './managers/MediaManager'
 import { UserManager } from './managers/UserManager'
 
 import { Challenge } from './entities/Challenge'
@@ -52,6 +53,7 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
     public timeline = new TimelineManager(this)
     public upload = new UploadManager(this)
     public direct = new DirectManager(this)
+    public media = new MediaManager(this)
     public users = new UserManager(this)
 
     public ready = false
