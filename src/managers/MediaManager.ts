@@ -11,6 +11,16 @@ export type MediaInfoResponseData = {
     status: 'ok' | 'fail'
 }
 
+export type EditMediaOptions = {
+    mediaId: string
+    text: string
+}
+
+export type EditMediaResponseData = {
+    media: MediaData
+    status: 'ok' | 'fail'
+}
+
 /**
  * Manages media.
  * 
@@ -18,15 +28,15 @@ export type MediaInfoResponseData = {
  */
 export class MediaManager extends Manager {
     /**
-     * Get media info by ID.
+     * Get media by ID and return raw response data.
      * 
      * @public
      * 
      * @param mediaId Media ID
      * 
-     * @returns {Promise<unknown>} 
+     * @returns {Promise<MediaInfoResponseData>} 
      */
-    public async getMedia (mediaId: string): Promise<unknown> {
+    public async getRaw (mediaId: string): Promise<MediaInfoResponseData> {
         const data = {
             igtv_feed_preview: false,
             media_id: mediaId
@@ -37,6 +47,59 @@ export class MediaManager extends Manager {
             data
         })
 
-        return new Media(this.client, response.body.items[0])
+        return response.body
+    }
+
+    /**
+     * Get media by ID.
+     * 
+     * @public
+     * 
+     * @param mediaId Media ID
+     * 
+     * @returns {Promise<Media>} 
+     */
+    public async get (mediaId: string): Promise<Media> {
+        const body = await this.getRaw(mediaId)
+        return new Media(this.client, body.items[0])
+    }
+
+    /**
+     * Edit media caption and return raw response data.
+     * 
+     * @public
+     * 
+     * @param options Edit options
+     * 
+     * @returns {Promise<EditMediaResponseData>}
+     */
+    public async editRaw (options: EditMediaOptions): Promise<EditMediaResponseData> {
+        const data = {
+            igtv_feed_preview: false,
+            media_id: options.mediaId,
+            caption_text: options.text
+        }
+
+        const response = await this.client.request.send<EditMediaResponseData>({
+            url: `api/v1/media/${options.mediaId}/edit_media/`,
+            method: 'POST',
+            data
+        })
+
+        return response.body
+    }
+
+    /**
+     * Edit media caption.
+     * 
+     * @public
+     * 
+     * @param options Edit options
+     * 
+     * @returns {Promise<Media>}
+     */
+    public async edit (options: EditMediaOptions): Promise<Media> {
+        const body = await this.editRaw(options)
+        return new Media(this.client, body.media)
     }
 }
