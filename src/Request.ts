@@ -182,7 +182,7 @@ export class Request {
             'X-Ads-Opt-Out': '1',
             'X-CM-Bandwidth-KBPS': '-1.000',
             'X-CM-Latency': '-1.000',
-            'X-IG-Connection-Speed': `3700kbps`,
+            'X-IG-Connection-Speed': '3700kbps',
             'X-IG-Bandwidth-Speed-KBPS': '-1.000',
             'X-IG-Bandwidth-TotalBytes-B': '0',
             'X-IG-Bandwidth-TotalTime-MS': '0',
