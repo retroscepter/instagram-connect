@@ -1,7 +1,7 @@
 
 import { Manager } from './Manager'
 
-import { Media, MediaData } from '../entities'
+import { Media, MediaData } from '../entities/Media'
 
 export type GetTimelineReason =
     'pagination' |
@@ -10,15 +10,16 @@ export type GetTimelineReason =
     'cold_start_fetch'
 
 export type GetTimelineOptions = {
-    reason: GetTimelineReason
+    reason?: GetTimelineReason
     pullToRefresh?: boolean
     recoveredFromCrash?: boolean
     pushDisabled?: boolean
+    nextMaxId?: string
 }
 
 export type TimelineResponseData = {
     num_results: number
-    more_availabe: boolean
+    more_available: boolean
     auto_load_more_enabled: boolean
     feed_items: TimelineItemData[]
     is_direct_v2_enabled: boolean
@@ -44,7 +45,21 @@ export type TimelineItemData = {
  */
 export class TimelineManager extends Manager {
     /**
-     * Get the posts in the timeline.
+     * If more posts are available.
+     * 
+     * @type {boolean}
+     */
+    public more?: boolean
+
+    /**
+     * Next cursor ID for pagination.
+     * 
+     * @type {string}
+     */
+    public nextMaxId?: string
+
+    /**
+     * Get the posts in the timeline and resets pagination.
      * 
      * @public
      * 
@@ -70,7 +85,8 @@ export class TimelineManager extends Manager {
             is_async_ads_rti: 0,
             recovered_from_crash: options?.recoveredFromCrash,
             push_disabled: options?.pushDisabled,
-            reason: options?.reason
+            reason: options?.nextMaxId ? 'pagination' : options?.reason,
+            max_id: options?.nextMaxId
         }
 
         const response = await this.client.request.send<TimelineResponseData>({
@@ -79,8 +95,28 @@ export class TimelineManager extends Manager {
             data
         })
 
+        this.more = response.body.more_available
+        this.nextMaxId = response.body.next_max_id
+
         return response.body.feed_items
             .filter(i => i.media_or_ad)
             .map(i => new Media(this.client, i.media_or_ad))
+    }
+
+    /**
+     * Gets the posts in the next page of the timeline.
+     * 
+     * @public
+     * 
+     * @param options Timeline options.
+     * 
+     * @returns {Promise<Media[]>}
+     */
+    public async next (options?: GetTimelineOptions): Promise<Media[]> {
+        return this.get({
+            ...(options || {}),
+            pullToRefresh: false,
+            nextMaxId: this.nextMaxId
+        })
     }
 }
