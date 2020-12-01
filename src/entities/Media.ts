@@ -129,7 +129,7 @@ export class Media extends Entity {
     public canViewMorePreviewComments = false
     public commentCount = 0
     public likeCount = 0
-    public hasLiked = false
+    public liked = false
     public topLikers: string[] = []
     public photoOfYou = false
     public videoDashManifest?: string
@@ -178,7 +178,7 @@ export class Media extends Entity {
         if (typeof data.can_view_more_preview_comments === 'number') this.canViewMorePreviewComments = data.can_view_more_preview_comments!
         if (typeof data.comment_count === 'number') this.commentCount = data.comment_count
         if (typeof data.like_count === 'number') this.likeCount = data.like_count
-        if (typeof data.has_liked === 'boolean') this.hasLiked = data.has_liked
+        if (typeof data.has_liked === 'boolean') this.liked = data.has_liked
         if (typeof data.top_likers !== 'undefined') {
             this.topLikers = data.top_likers.map(t => typeof t === 'string' ? t : BigInt(t).toString())
         }
