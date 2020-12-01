@@ -3,6 +3,7 @@ import got, { GotRequestFunction, Options, Response } from 'got'
 import { createHmac } from 'crypto'
 
 import { Client } from './Client'
+import { APIError } from './errors/APIError'
 
 import * as Constants from './constants'
 
@@ -75,7 +76,8 @@ export class Request {
             /* Throw response body */
 
             if (!error.response) throw error
-            if (!error.response.body) throw error.response
+
+            /* Start challenge flow if a challenge is detected */
 
             if (error.response.body.message === 'challenge_required') {
                 const url = error.response.body.challenge.api_path
@@ -84,7 +86,7 @@ export class Request {
                 return this.send(options)
             }
 
-            throw error.response.body
+            throw new APIError(error)
         }
     }
 
