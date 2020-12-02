@@ -22,6 +22,7 @@ export type MediaData = {
     has_more_comments: boolean
     max_num_visible_preview_comments: number
     can_view_more_preview_comments: boolean
+    collapse_comments: boolean
     comment_count: number
     inline_composer_display_condition: string
     inline_composer_imp_trigger_time: number
@@ -49,6 +50,9 @@ export type MediaData = {
     video_versions?: MediaVideoData[]
     image_versions2?: {
         candidates: MediaImageData[]
+    }
+    injected?: {
+        ad_id: string
     }
 }
 
@@ -146,6 +150,7 @@ export class Media extends Entity {
     public hasMoreComments = true
     public maxVisiblePreviewComments = 0
     public canViewMorePreviewComments = false
+    public collapseComments = false
     public commentCount = 0
     public likeCount = 0
     public liked = false
@@ -160,6 +165,7 @@ export class Media extends Entity {
     public sharingFriction?: MediaAbstractedSharingFrictionData
     public images: MediaImageData[] = []
     public videos?: MediaVideoData[]
+    public adId?: string
 
     /**
      * @param client Client managing this media
@@ -317,6 +323,7 @@ export class Media extends Entity {
         if (typeof data.image_versions2 !== 'undefined') {
             this.images = data.image_versions2.candidates.map(({ width, height, url }) => ({ width, height, url }))
         }
+        if (data.injected?.ad_id) this.adId = BigInt(data.injected.ad_id).toString()
         return this
     }
 }
