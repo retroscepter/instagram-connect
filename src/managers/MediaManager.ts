@@ -86,7 +86,7 @@ export type MediaManagerUnlikeOptions = {
 export type MediaManagerCommentOptions = {
     mediaId: string
     text: string
-    replyTo: string
+    replyTo?: string
     module?: 'self_comments_v2'
 }
 
