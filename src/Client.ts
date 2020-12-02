@@ -99,6 +99,8 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
 
         if (this.options.realtime) {
             await this.realtime.connect()
+        } else {
+            this.emit('ready')
         }
     }
 }
