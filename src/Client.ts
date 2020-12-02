@@ -23,6 +23,7 @@ import { DirectThreadItem } from './entities/DirectThreadItem'
 export type ClientOptions = {
     username: string
     password: string,
+    realtime?: boolean,
     state?: { [key: string]: string | number | boolean | null }
 }
 
@@ -35,6 +36,10 @@ export type ClientEvents = {
     threadItemCreate: (i: DirectThreadItem) => void
     threadItemUpdate: (i: DirectThreadItem) => void
     threadItemRemove: (t: string, i: string) => void
+}
+
+const defaultOptions: Partial<ClientOptions> = {
+    realtime: true
 }
 
 /**
@@ -70,7 +75,7 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
         if (typeof options.password !== 'string') throw new TypeError('password is required and must be a string')
         if (options.state && typeof options.state === 'string') options.state = JSON.parse(options.state)
 
-        this.options = options
+        this.options = { ...defaultOptions, ...options }
     }
 
     /**
@@ -92,6 +97,8 @@ export class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents
             await this.account.login(username, password)
         }
 
-        await this.realtime.connect()
+        if (this.options.realtime) {
+            await this.realtime.connect()
+        }
     }
 }
