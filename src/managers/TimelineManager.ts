@@ -3,14 +3,14 @@ import { Manager } from './Manager'
 
 import { Media, MediaData } from '../entities/Media'
 
-export type GetTimelineReason =
+export type TimelineManagerGetReason =
     'pagination' |
     'pull_to_refresh' |
     'warm_start_fetch' |
     'cold_start_fetch'
 
-export type GetTimelineOptions = {
-    reason?: GetTimelineReason
+export type TimelineManagerGetOptions = {
+    reason?: TimelineManagerGetReason
     pullToRefresh?: boolean
     recoveredFromCrash?: boolean
     pushDisabled?: boolean
@@ -59,15 +59,15 @@ export class TimelineManager extends Manager {
     public nextMaxId?: string
 
     /**
-     * Get the posts in the timeline and resets pagination.
+     * Get posts from the timeline and return the raw response data.
      * 
      * @public
      * 
-     * @param options Timeline options.
+     * @param options Timeline options
      * 
-     * @returns {Promise<Media[]>}
+     * @returns {Promise<TimelineResponseData>}
      */
-    public async get (options?: GetTimelineOptions): Promise<Media[]> {
+    public async getRaw (options?: TimelineManagerGetOptions): Promise<TimelineResponseData> {
         const data = {
             is_prefetch: '0',
             feed_view_info: '',
@@ -98,21 +98,52 @@ export class TimelineManager extends Manager {
         this.more = response.body.more_available
         this.nextMaxId = response.body.next_max_id
 
-        return response.body.feed_items
+        return response.body
+    }
+
+    /**
+     * Get posts from the timeline.
+     * 
+     * @public
+     * 
+     * @param options Timeline options
+     * 
+     * @returns {Promise<Media[]>}
+     */
+    public async get (options?: TimelineManagerGetOptions): Promise<Media[]> {
+        const body = await this.getRaw(options)
+        return body.feed_items
             .filter(i => i.media_or_ad)
             .map(i => new Media(this.client, i.media_or_ad))
     }
 
     /**
-     * Gets the posts in the next page of the timeline.
+     * Gets the posts from the next page of the timeline and return the raw response data.
      * 
      * @public
      * 
-     * @param options Timeline options.
+     * @param options Timeline options
+     * 
+     * @returns {Promise<TimelineResponseData>}
+     */
+    public async nextRaw (options?: TimelineManagerGetOptions): Promise<TimelineResponseData> {
+        return this.getRaw({
+            ...(options || {}),
+            pullToRefresh: false,
+            nextMaxId: this.nextMaxId
+        })
+    }
+
+    /**
+     * Gets the posts from the next page of the timeline.
+     * 
+     * @public
+     * 
+     * @param options Timeline options
      * 
      * @returns {Promise<Media[]>}
      */
-    public async next (options?: GetTimelineOptions): Promise<Media[]> {
+    public async next (options?: TimelineManagerGetOptions): Promise<Media[]> {
         return this.get({
             ...(options || {}),
             pullToRefresh: false,
