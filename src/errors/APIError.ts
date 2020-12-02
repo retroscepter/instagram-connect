@@ -7,15 +7,18 @@ import { HTTPError } from 'got/dist/source'
  * @extends {Error}
  */
 export class APIError extends Error {
+    /**
+     * Error response body.
+     * 
+     * @type {any}
+     */
     public body: any
-    public httpError: HTTPError
 
     /**
      * @param error HTTP error
      */
     constructor (error: HTTPError) {
         super(`Status code ${error.response.statusCode}: ${JSON.stringify(error.response.body)}`)
-        Object.assign(this, error.response.body)
-        this.httpError = error
+        this.body = error.response.body
     }
 }
