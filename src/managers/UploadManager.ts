@@ -3,7 +3,7 @@ import { Chance } from 'chance'
 
 import { Manager } from './Manager'
 
-export type PhotoUploadOptions = {
+export type UploadManagerPhotoOptions = {
     file: Buffer,
     id?: string
     sidecar?: boolean
@@ -24,7 +24,7 @@ export type PhotoUploadResponseData = {
     message?: string
 }
 
-export type VideoUploadOptions = {
+export type UploadManagerVideoOptions = {
     file: Buffer
     id?: string
     duration: number
@@ -75,7 +75,7 @@ export class UploadManager extends Manager {
      * 
      * @returns {Promise<PhotoUploadResponseData>}
      */
-    public async photo (options: PhotoUploadOptions): Promise<PhotoUploadResponseData> {
+    public async photo (options: UploadManagerPhotoOptions): Promise<PhotoUploadResponseData> {
         const uploadId = options.id || Date.now().toString()
         const uploadName = `${uploadId}_0_${Math.floor(Math.random() * 8999999999) + 1000000000}`
         const ruploadParams = JSON.stringify(this.createPhotoRuploadParams(options, uploadId))
@@ -114,7 +114,7 @@ export class UploadManager extends Manager {
      * 
      * @returns {PhotoRuploadParams}
      */
-    public createPhotoRuploadParams (options: PhotoUploadOptions, uploadId: string | number): PhotoRuploadParams {
+    public createPhotoRuploadParams (options: UploadManagerPhotoOptions, uploadId: string | number): PhotoRuploadParams {
         return {
             media_type: '1',
             upload_id: uploadId.toString(),
@@ -134,7 +134,7 @@ export class UploadManager extends Manager {
      * 
      * @returns {Promise<VideoUploadResponseData>}
      */
-    public async video (options: VideoUploadOptions): Promise<VideoUploadResponseData> {
+    public async video (options: UploadManagerVideoOptions): Promise<VideoUploadResponseData> {
         const uploadId = options.id || Date.now().toString()
         const uploadName = `${uploadId}_0_${Math.floor(Math.random() * 8999999999) + 1000000000}`
         const ruploadParams = JSON.stringify(this.createVideoRuploadParams(options, uploadId))
@@ -173,7 +173,7 @@ export class UploadManager extends Manager {
      * 
      * @returns {VideoRuploadParams}
      */
-    public createVideoRuploadParams (options: VideoUploadOptions, uploadId: string): VideoRuploadParams {
+    public createVideoRuploadParams (options: UploadManagerVideoOptions, uploadId: string): VideoRuploadParams {
         return {
             media_type: '2',
             upload_id: uploadId.toString(),

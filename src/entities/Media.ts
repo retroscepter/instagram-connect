@@ -3,7 +3,7 @@ import { Client } from '../Client'
 
 import { Entity } from './Entity'
 import { User, UserData } from './User'
-import { MediaManagerCommentOptions, MediaManagerEditOptions, MediaManagerLikeOptions, MediaManagerUnlikeOptions } from '../managers'
+import { MediaManagerCommentOptions, MediaManagerEditOptions, MediaManagerLikeOptions, MediaManagerUnlikeOptions } from '../managers/MediaManager'
 
 export type MediaData = {
     taken_at: number
@@ -86,11 +86,11 @@ export type MediaVideoData = MediaImageData & {
     type: number
 }
 
-export type MediaInternalCaptionData = {
+export type MediaAbstractedCaptionData = {
     user: User
     text: string
     type: number
-    createdAtTimestamp: number
+    createdAt: number
     createdAtUTC: number
     contentType: string
     status: string
@@ -102,25 +102,25 @@ export type MediaInternalCaptionData = {
     privateReplyStatus: number
 }
 
-export type MediaIntervalSharingFrictionData = {
+export type MediaAbstractedSharingFrictionData = {
     shouldHaveFriction: boolean
     bloksAppUrl: string | null
 }
 
 export type MediaEditOptions = MediaManagerEditOptions & {
-    mediaId: never
+    mediaId?: string
 }
 
 export type MediaLikeOptions = MediaManagerLikeOptions & {
-    mediaId: never
+    mediaId?: string
 }
 
 export type MediaUnlikeOptions = MediaManagerUnlikeOptions & {
-    mediaId: never
+    mediaId?: string
 }
 
 export type MediaCommentOptions = MediaManagerCommentOptions & {
-    mediaId: never
+    mediaId?: string
 }
 
 /**
@@ -135,7 +135,7 @@ export class Media extends Entity {
     public height = 0
     public takenAt = Date.now()
     public deviceTimestamp = Date.now()
-    public user?: User
+    public user = new User(this.client, {})
     public code = ''
     public cacheKey = ''
     public filterType = 0
@@ -156,8 +156,8 @@ export class Media extends Entity {
     public qualityCount?: number
     public hasAudio?: boolean
     public duration?: number
-    public caption?: MediaInternalCaptionData
-    public sharingFriction?: MediaIntervalSharingFrictionData
+    public caption?: MediaAbstractedCaptionData
+    public sharingFriction?: MediaAbstractedSharingFrictionData
     public images: MediaImageData[] = []
     public videos?: MediaVideoData[]
 
@@ -193,7 +193,7 @@ export class Media extends Entity {
      * @returns {Promise<Media>}
      */
     public async edit (options: MediaEditOptions): Promise<Media> {
-        const { media } = await this.client.media.editRaw({ ...options, mediaId: this.id, })
+        const { media } = await this.client.media.editRaw({ ...options, mediaId: this.id })
         return this.update(media)
     }
 
@@ -299,7 +299,7 @@ export class Media extends Entity {
                 user: new User(this.client, caption.user),
                 text: caption.text,
                 type: caption.type,
-                createdAtTimestamp: caption.created_at,
+                createdAt: caption.created_at,
                 createdAtUTC: caption.created_at_utc,
                 contentType: caption.content_type,
                 status: caption.status,

@@ -13,14 +13,14 @@ export type MediaInfoResponseData = {
     status: 'ok' | 'fail'
 }
 
-export type MediaManagerEditOptions = {
-    mediaId: string
-    text: string
-}
-
 export type MediaEditResponseData = {
     media: MediaData
     status: 'ok' | 'fail'
+}
+
+export type MediaManagerEditOptions = {
+    mediaId: string
+    text: string
 }
 
 export type MediaManagerDeleteOptions = {
@@ -28,47 +28,47 @@ export type MediaManagerDeleteOptions = {
     mediaType?: 'PHOTO' | 'VIDEO' | 'CAROUSEL'
 }
 
-type LikeMediaTimelineModule = {
+type MediaLikeTimelineModule = {
     name: 'feed_timeline' | 'feed_contextual_post' | 'newsfeed' | 'feed_contextual_newsfeed_multi_media_liked'
 }
 
-type LikeMediaHashtagModule = {
+type MediaLikeHashtagModule = {
     name: 'feed_contextual_hashtag'
     hashtag: string
 }
 
-type LikeMediaLocationModule = {
+type MediaLikeLocationModule = {
     name: 'feed_contextual_location',
     locationId: string | number
 }
 
-type LikeMediaBaseProfileModule = {
+type MediaLikeBaseProfileModule = {
     username: string,
     userId: string
 }
 
-type LikeMediaProfileModule = LikeMediaBaseProfileModule & {
+type MediaLikeProfileModule = MediaLikeBaseProfileModule & {
     name: 'profile'
 }
 
-type LikeMediaViewProfileModule = LikeMediaBaseProfileModule & {
+type MediaLikeViewProfileModule = MediaLikeBaseProfileModule & {
     name: 'media_view_profile'
 }
 
-type LikeVideoViewProfileModule = LikeMediaBaseProfileModule & {
+type LikeVideoViewProfileModule = MediaLikeBaseProfileModule & {
     name: 'video_view_profile'
 }
 
-type LikePhotoViewProfileModule = LikeMediaBaseProfileModule & {
+type LikePhotoViewProfileModule = MediaLikeBaseProfileModule & {
     name: 'photo_view_profile'
 }
 
 export type MediaLikeModule =
-    LikeMediaTimelineModule |
-    LikeMediaHashtagModule |
-    LikeMediaLocationModule |
-    LikeMediaProfileModule |
-    LikeMediaViewProfileModule |
+    MediaLikeTimelineModule |
+    MediaLikeHashtagModule |
+    MediaLikeLocationModule |
+    MediaLikeProfileModule |
+    MediaLikeViewProfileModule |
     LikeVideoViewProfileModule |
     LikePhotoViewProfileModule
 
