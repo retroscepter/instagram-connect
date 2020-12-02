@@ -133,6 +133,8 @@ export class Media extends Entity {
     public type: 1 | 2 | 8 = 1
     public width = 0
     public height = 0
+    public takenAt = Date.now()
+    public deviceTimestamp = Date.now()
     public user?: User
     public code = ''
     public cacheKey = ''
@@ -264,6 +266,8 @@ export class Media extends Entity {
     public update (data: MediaData): Media {
         if (data.id) this.id = typeof data.id === 'string' ? data.id : BigInt(data.id).toString()
         if (typeof data.media_type === 'number') this.type = data.media_type
+        if (typeof data.taken_at === 'number') this.takenAt = data.taken_at * 1000
+        if (typeof data.device_timestamp === 'number') this.deviceTimestamp = data.device_timestamp
         if (typeof data.user !== 'undefined') this.user = new User(this.client, data.user)
         if (typeof data.code === 'string') this.code = data.code
         if (typeof data.original_width === 'number') this.width = data.original_width
